@@ -70,22 +70,35 @@ int TCPIPMsgOpen(char *hostip, int port) {
     return -1;
   }
 
-  option=TCP_NODELAY;
-  optionlen=4;
-  temp=setsockopt(sock,6,TCP_NODELAY,&option,optionlen);
-  temp=getsockopt(sock,6,TCP_NODELAY,&option,&optionlen);
+  option=1;
+  optionlen=sizeof(option);
+  if( (temp=setsockopt(sock,IPPROTO_TCP,TCP_NODELAY,&option,optionlen)) != 0){
+    fprintf(stderr,"Failed to set TCP_NODELAY on sockets\n");
+    TCPIPMsgErr=CONNECT_FAIL;
+    return(-1);
+  }
+  temp=getsockopt(sock,IPPROTO_TCP,TCP_NODELAY,&option,&optionlen);
 
-  optionlen=4;
+  option=1;
+  optionlen=sizeof(option);
+  if( (temp=setsockopt(sock,IPPROTO_TCP,TCP_QUICKACK,&option,optionlen)) != 0){
+    fprintf(stderr,"Failed to set TCP_QUICKACK on sockets\n");
+    TCPIPMsgErr=CONNECT_FAIL;
+    return(-1);
+  }
+  temp=getsockopt(sock,IPPROTO_TCP,TCP_NODELAY,&option,&optionlen);
+
+  optionlen=sizeof(option);
   option=32768;
   temp=setsockopt(sock,SOL_SOCKET,SO_SNDBUF,&option,optionlen);
   temp=getsockopt(sock,SOL_SOCKET,SO_SNDBUF,&option,&optionlen);
 
-   optionlen=4;
-   option=32768;
-   temp=setsockopt(sock,SOL_SOCKET,SO_RCVBUF,&option,optionlen);
-   temp=getsockopt(sock,SOL_SOCKET,SO_RCVBUF,&option,&optionlen);
+  optionlen=sizeof(option);
+  option=32768;
+  temp=setsockopt(sock,SOL_SOCKET,SO_RCVBUF,&option,optionlen);
+  temp=getsockopt(sock,SOL_SOCKET,SO_RCVBUF,&option,&optionlen);
 
-   return sock;
+  return sock;
 }
 
 int TCPIPMsgSend(int fd,void  *buf,size_t buflen) {
