@@ -77,7 +77,7 @@ int main(int argc,char *argv[])
 
   int nowait=0;
 
-  int scnsc=120;    /* total scan period in seconds */
+  int scnsc=60;    /* total scan period in seconds */
   int scnus=0;
   int cnt=0;
 
@@ -97,11 +97,7 @@ int main(int argc,char *argv[])
   int total_scan_usecs=0;
   int total_integration_usecs=0;
 
-  int total_skip_usecs=0;
-  int skipsc=0;
-  int skipus=0;
-
-  int bufsc=4;    /* a buffer at the end of scan; historically this has   */
+  int bufsc=3;    /* a buffer at the end of scan; historically this has   */
   int bufus=0;    /*   been set to 3.0s to account for what???            */
 
   unsigned char hlp=0;
@@ -228,12 +224,10 @@ int main(int argc,char *argv[])
                   " frqrng l xcnt l", &sbm,&ebm, &dfrq,&nfrq,
                   &frqrng,&xcnt);
 
-  nBeams_per_scan = 2*(abs(ebm-sbm)+1);
+  nBeams_per_scan = abs(ebm-sbm)+1;
   current_beam = sbm;
 
   for (iBeam =0; iBeam < nBeams_per_scan; iBeam++) {
-    scan_beam_number_list[iBeam] = current_beam;
-    iBeam++;
     scan_beam_number_list[iBeam] = current_beam;
     current_beam += backward ? -1:1;
   }
@@ -246,10 +240,6 @@ int main(int argc,char *argv[])
   total_integration_usecs = total_scan_usecs/nBeams_per_scan;
   intsc = total_integration_usecs/1e6;
   intus = total_integration_usecs - (intsc*1e6);
-
-  total_skip_usecs = 2*(intsc*1e6 + intus);
-  skipsc = total_skip_usecs/1e6;
-  skipus = total_skip_usecs - (skipsc*1e6);
 
   pcode=(int *)malloc((size_t)sizeof(int)*seq_long->mppul*nbaud);
   OpsBuildPcode(nbaud,seq_long->mppul,pcode);
@@ -297,7 +287,7 @@ int main(int argc,char *argv[])
 
     /* set iBeam for scan loop */
     if (nowait == 0) {
-      iBeam = OpsFindSkip(scnsc,scnus,skipsc,skipus,0);
+      iBeam = OpsFindSkip(scnsc,scnus,intsc,intus,nBeams_per_scan);
     } else {
       iBeam = 0;
     }
@@ -442,16 +432,17 @@ int main(int argc,char *argv[])
       RadarShell(shell.sock,&rstable);
 
       scan = 0;
-      if (flipflop==0) {
-        flipflop++;
-      } else {
-        flipflop=0;
-      }
 
       iBeam++;
       if (iBeam >= nBeams_per_scan) break;
 
     } while (1);
+
+    if (flipflop==0) {
+      flipflop++;
+    } else {
+      flipflop=0;
+    }
 
     ErrLog(errlog.sock,progname,"Waiting for scan boundary.");
     if (nowait==0) SiteEndScan(scnsc,scnus,5000);
