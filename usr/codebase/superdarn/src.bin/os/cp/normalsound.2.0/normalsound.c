@@ -518,6 +518,7 @@ int main(int argc,char *argv[])
 
     } while (1);
 
+    SiteEndScan(1,0,50);
 
     /* In here comes the sounder code */
     /* set the "sounder mode" scan variable */
