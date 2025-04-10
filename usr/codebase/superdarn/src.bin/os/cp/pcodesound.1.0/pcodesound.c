@@ -57,7 +57,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"pcodesound 2025/01/23"};
+char progid[80]={"pcodesound 2025/04/10"};
 char progname[256];
 
 int arg=0;
@@ -136,7 +136,7 @@ int main(int argc,char *argv[])
   int snd_sc=-1;
   int snd_intt_sc=1;
   int snd_intt_us=500000;
-  float snd_time, snd_intt, time_needed=0.1;
+  float snd_time, snd_intt, time_needed=1.0;
   /* ------------------------------------------------------- */
 
   struct sequence *seq;
@@ -547,6 +547,7 @@ int main(int argc,char *argv[])
 
     } while (1);
 
+    SiteEndScan(1,0,50);
 
     /* In here comes the sounder code */
     /* set the "sounder mode" scan variable */
