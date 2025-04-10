@@ -8,7 +8,7 @@ Control Program ID (CPID):
 
 Parameters:
 ==========
-nbeams: 20
+nbeams: 20+
 intt: 3 s
 scan: 1 min
 ngates: 75+

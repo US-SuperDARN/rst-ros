@@ -58,7 +58,7 @@ char *dfststr="tst";
 char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
-char progid[80]={"testscan 2024/04/15"};
+char progid[80]={"testscan 2025/04/10"};
 char progname[256];
 int arg=0;
 struct OptionData opt;
@@ -83,15 +83,17 @@ int main(int argc,char *argv[]) {
   /* these are set for a standard 1-min scan, any changes here will affect
      the number of beams sampled, etc.
    */
-  int scnsc=60;
+  int scnsc=0;
   int scnus=0;
   int total_scan_usecs=0;
   int total_integration_usecs=0;
 
   int cnt=0;
   int i,n;
+  unsigned char fast=0;
   unsigned char discretion=0;
   int status=0;
+  int setintt=0;  /* flag to override auto-calc of integration time */
 
   /* Variables for controlling clear frequency search */
   struct timeval t0,t1;
@@ -103,11 +105,18 @@ int main(int argc,char *argv[]) {
 
   /* new variables for dynamically creating beam sequences */
   int *bms;           /* scanning beams                                     */
-  int intgt[20];      /* start times of each integration period             */
+  int intgt[24];      /* start times of each integration period             */
   int nintgs=20;      /* number of integration periods per scan; SGS 1-min  */
+  int bufsc=3;        /* a buffer at the end of scan; historically this has   */
+  int bufus=0;        /*   been set to 3.0s to account for what???            */
   unsigned char hlp=0;
   unsigned char option=0;
   unsigned char version=0;
+
+  /* Flag and variables for beam synchronizing */
+  int bm_sync = 0;
+  int bmsc    = 6;
+  int bmus    = 0;
 
   /*
     beam sequences for 24-beam MSI radars but only using 20 most meridional
@@ -119,14 +128,16 @@ int main(int argc,char *argv[]) {
   int bmsw[20] =
              {22,21,20,19,18,17,16,15,14,13,12,11,10, 9, 8, 7, 6, 5, 4,23};
 
+  int bms_bks[24] =
+             {22,21,20,19,18,17,16,15,14,13,12,11,10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 23};
+
   struct sequence *seq;
 
   seq=OpsSequenceMake();
   OpsBuild8pulse(seq);
 
-  /* standard radar defaults */
-  cp     = 131;         /* not using 151 normalscan to keep Simon happy */
-  intsc  = 3;           /* integration period; not sure how critical this is */
+  cp     = 130;         /* not using 150 normalscan to keep Simon happy */
+  intsc  = 7;           /* integration period; not sure how critical this is */
   intus  = 0;           /*  but can be changed here */
   mppul  = seq->mppul;
   mplgs  = seq->mplgs;
@@ -149,10 +160,21 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt,"sp",    'i',&shell.port);
   OptionAdd(&opt,"bp",    'i',&baseport);
   OptionAdd(&opt,"stid",  't',&ststr);
+  OptionAdd(&opt,"fast",  'x',&fast);
   OptionAdd(&opt,"nowait",'x',&nowait);
   OptionAdd(&opt,"clrscan",'x',&clrscan);
   OptionAdd(&opt,"clrskip",'i',&clrskip);
   OptionAdd(&opt,"fixfrq",'i',&fixfrq);     /* fix the transmit frequency */
+
+  OptionAdd(&opt, "bm_sync",'x', &bm_sync);  /* flag to enable beam sync    */
+  OptionAdd(&opt, "bmsc",   'i', &bmsc);     /* beam sync period, sec       */
+  OptionAdd(&opt, "bmus",   'i', &bmus);     /* beam sync period, microsec  */
+  OptionAdd(&opt, "intsc",  'i', &intsc);
+  OptionAdd(&opt, "intus",  'i', &intus);
+  OptionAdd(&opt, "setintt",'x', &setintt);
+  OptionAdd(&opt, "scnsc",  'i', &scnsc);     /* set the scan time */
+  OptionAdd(&opt, "scnus",  'i', &scnus);
+
   OptionAdd(&opt,"c",     'i',&cnum);
   OptionAdd(&opt,"ros",   't',&roshost);    /* Set the roshost IP address */
   OptionAdd(&opt,"debug", 'x',&debug);
@@ -189,6 +211,9 @@ int main(int argc,char *argv[]) {
     bms = bmse;     /* 1-min sequence */
   } else if ((strcmp(ststr,"cvw") == 0) || (strcmp(ststr,"icw") == 0)) {
     bms = bmsw;     /* 1-min sequence */
+  } else if (strcmp(ststr,"bks") == 0) {
+    bms = bms_bks;  /* 1-min sequence */
+    nintgs = 24;
   } else if (strcmp(ststr,"fhw") == 0) {
     bms = bmsw;     /* 1-min sequence */
     for (i=0; i<nintgs; i++)
@@ -216,18 +241,35 @@ int main(int argc,char *argv[]) {
 
   nBeams_per_scan = nintgs;
 
-  sync_scan = 1;
-  scan_times = malloc(nBeams_per_scan*sizeof(int));
+  if (scnsc + scnus == 0) {  /* not set with command-line */
+    if (fast) {     /* simple operation: 2-min scan or 1-min with fast set */
+     cp    = 131;
+     scnsc = 60;
+     scnus = 0;
+    } else {
+     scnsc = 120;
+     scnus = 0;
+    }
+  }
+
+  if (bm_sync) {
+    sync_scan = 1;
+    scan_times = malloc(nBeams_per_scan*sizeof(int));
+  }
+
   for (iBeam = 0; iBeam < nBeams_per_scan; iBeam++) {
     scan_beam_number_list[iBeam] = bms[iBeam];
-    scan_times[iBeam] = iBeam * (intsc*1000 + intus/1000); /* in ms */
+    if (bm_sync) scan_times[iBeam] = iBeam * (bmsc*1000 + bmus/1000); /* in ms */
   }
 
   /* Automatically calculate the integration times */
-  total_scan_usecs = (scnsc-3)*1E6 + scnus;
-  total_integration_usecs = total_scan_usecs/nBeams_per_scan;
-  intsc = total_integration_usecs/1E6;
-  intus = total_integration_usecs - (intsc*1E6);
+  if ((nowait==0) && (setintt==0)) {
+    total_scan_usecs = scnsc*1e6 + scnus - (bufsc*1e6 + bufus);
+/*  total_scan_usecs = (scnsc-3)*1E6+scnus; */
+    total_integration_usecs = total_scan_usecs/nBeams_per_scan;
+    intsc = total_integration_usecs/1E6;
+    intus = total_integration_usecs - (intsc*1E6);
+  }
 
   /* Configure phasecoded operation if nbaud > 1 */
   pcode=(int *)malloc((size_t)sizeof(int)*seq->mppul*nbaud);
@@ -272,7 +314,9 @@ int main(int argc,char *argv[]) {
   for (n=0;n<tnum;n++) task[n].port+=baseport;
 
   /* dump beams to log file */
-  sprintf(progname,"testscan");
+  if (fast) sprintf(progname,"testscan (fast)");
+  else      sprintf(progname,"testscan");
+
   for (i=0; i<nintgs; i++){
     sprintf(tempLog, "%3d", bms[i]);
     strcat(logtxt, tempLog);
@@ -493,6 +537,12 @@ void usage(void)
   printf("-clrscan    : Force clear frequency search at start of scan\n");
   printf("-clrskip int: Minimum number of seconds to skip between clear frequency search\n");
   printf("-fixfrq int : transmit on fixed frequency (kHz)\n");
+  printf("-bm_sync    : set to enable beam syncing.\n");
+  printf("  -bmsc int : beam syncing interval seconds.\n");
+  printf("  -bmus int : beam syncing interval microseconds.\n");
+  printf("-setintt    : set to enable integration period override.\n");
+  printf(" -intsc int : integration period seconds.\n");
+  printf(" -intus int : integration period microseconds.\n");
   printf("     -c int : channel number for multi-channel radars.\n");
   printf("   -ros char: change the roshost IP address.\n");
   printf(" --help     : print this message and quit.\n");
