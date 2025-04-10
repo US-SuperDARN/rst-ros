@@ -10,7 +10,7 @@ Parameters:
 ==========
 nbeams: 16+
 intt: 6 s / 3 s
-scan: 1 min
+scan: 2 min / 1 min
 ngates: 75+
 frang: 180 km
 rsep: 45 km
