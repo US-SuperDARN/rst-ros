@@ -80,9 +80,6 @@ int main(int argc,char *argv[]) {
   char tempLog[40];
 
   int nowait=0;
-  /* these are set for a standard 1-min scan, any changes here will affect
-     the number of beams sampled, etc.
-   */
   int scnsc=0;
   int scnus=0;
   int total_scan_usecs=0;
@@ -104,11 +101,11 @@ int main(int argc,char *argv[]) {
   int clrscan=0;
 
   /* new variables for dynamically creating beam sequences */
-  int *bms;           /* scanning beams                                     */
-  int intgt[24];      /* start times of each integration period             */
-  int nintgs=20;      /* number of integration periods per scan; SGS 1-min  */
-  int bufsc=3;        /* a buffer at the end of scan; historically this has   */
-  int bufus=0;        /*   been set to 3.0s to account for what???            */
+  int *bms;           /* scanning beams                                      */
+  int intgt[24];      /* start times of each integration period              */
+  int nintgs=20;      /* number of integration periods per scan;             */
+  int bufsc=3;        /* a buffer at the end of scan; historically this has  */
+  int bufus=0;        /*   been set to 3.0s to account for what???           */
   unsigned char hlp=0;
   unsigned char option=0;
   unsigned char version=0;
@@ -208,14 +205,14 @@ int main(int argc,char *argv[]) {
 
   /* Point to the beams here */
   if ((strcmp(ststr,"cve") == 0) || (strcmp(ststr,"ice") == 0) || (strcmp(ststr,"fhe") == 0)) {
-    bms = bmse;     /* 1-min sequence */
+    bms = bmse;
   } else if ((strcmp(ststr,"cvw") == 0) || (strcmp(ststr,"icw") == 0)) {
-    bms = bmsw;     /* 1-min sequence */
+    bms = bmsw;
   } else if (strcmp(ststr,"bks") == 0) {
-    bms = bms_bks;  /* 1-min sequence */
+    bms = bms_bks;
     nintgs = 24;
   } else if (strcmp(ststr,"fhw") == 0) {
-    bms = bmsw;     /* 1-min sequence */
+    bms = bmsw;
     for (i=0; i<nintgs; i++)
       bms[i] -= 2;
   } else {
