@@ -66,7 +66,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"testsound 2025/01/08"};
+char progid[80]={"testsound 2025/04/14"};
 char progname[256];
 
 int arg=0;
@@ -145,7 +145,7 @@ int main(int argc,char *argv[])
   int snd_sc=-1;
   int snd_intt_sc=1;
   int snd_intt_us=500000;
-  float snd_time, snd_intt, time_needed=0.1;
+  float time_needed=3.0;
   /* ------------------------------------------------------- */
 
   struct sequence *seq;
@@ -244,8 +244,6 @@ int main(int argc,char *argv[])
     snd_intt_sc = 2;
     snd_intt_us = 0;
   }
-
-  snd_intt = snd_intt_sc + snd_intt_us*1e-6;
 
   OpsStart(ststr);
 
@@ -516,6 +514,7 @@ int main(int argc,char *argv[])
 
     } while (1);
 
+    SiteEndScan(1,0,50);
 
     /* In here comes the sounder code */
     /* set the "sounder mode" scan variable */
@@ -576,10 +575,7 @@ int main(int argc,char *argv[])
 
     /* we have time until the end of the minute to do sounding */
     /* minus a safety factor given in time_needed */
-    TimeReadClock(&yr,&mo,&dy,&hr,&mt,&sc,&us);
-    snd_time = 60.0 - (sc + us*1e-6);
-
-    while (snd_time-snd_intt > time_needed) {
+    do {
 
       /* set the beam */
       bmnum = snd_beam_number_list[snd_iBeam];
@@ -658,10 +654,7 @@ int main(int argc,char *argv[])
       snd_iBeam++;
       if (snd_iBeam >= snd_nBeams_per_scan) break;
 
-      /* see if we have enough time for another go round */
-      TimeReadClock(&yr, &mo, &dy, &hr, &mt, &sc, &us);
-      snd_time = 60.0 - (sc + us*1e-6);
-    }
+    } while (1);
 
     /* now wait for the next normalscan */
     ErrLog(errlog.sock,progname,"Waiting for scan boundary.");

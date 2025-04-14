@@ -53,7 +53,7 @@ char *dfststr="tst";
 char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
-char progid[80]={"eclipsesound 2025/01/08"};
+char progid[80]={"eclipsesound 2025/04/14"};
 char progname[256];
 int arg=0;
 struct OptionData opt;
@@ -139,7 +139,6 @@ int main(int argc,char *argv[]) {
   int fast_intt_us=500000;
   int snd_intt_sc=1;
   int snd_intt_us=600000;
-  float snd_time, snd_intt, time_needed=0.1;
   /* ------------------------------------------------------- */
 
   struct sequence *seq;
@@ -259,8 +258,6 @@ int main(int argc,char *argv[]) {
 
   intsc = fast_intt_sc;
   intus = fast_intt_us;
-
-  snd_intt = snd_intt_sc + snd_intt_us*1e-6;
 
   /* Configure phasecoded operation if nbaud > 1 */
   pcode=(int *)malloc((size_t)sizeof(int)*seq->mppul*nbaud);
@@ -496,6 +493,7 @@ int main(int argc,char *argv[]) {
 
     } while (1);
 
+    SiteEndScan(1,0,50);
 
     /* In here comes the sounder code */
     /* set the "sounder mode" scan variable */
@@ -556,10 +554,7 @@ int main(int argc,char *argv[]) {
 
     /* we have time until the end of the minute to do sounding */
     /* minus a safety factor given in time_needed */
-    TimeReadClock(&yr,&mo,&dy,&hr,&mt,&sc,&us);
-    snd_time = 60.0 - (sc + us*1e-6);
-
-    while (snd_time-snd_intt > time_needed) {
+    do {
 
       /* set the beam */
       bmnum = snd_beam_number_list[snd_iBeam];
@@ -636,10 +631,7 @@ int main(int argc,char *argv[]) {
       snd_iBeam++;
       if (snd_iBeam >= snd_nBeams_per_scan) break;
 
-      /* see if we have enough time for another go round */
-      TimeReadClock(&yr, &mo, &dy, &hr, &mt, &sc, &us);
-      snd_time = 60.0 - (sc + us*1e-6);
-    }
+    } while (1);
 
     /* now wait for the next scan */
     ErrLog(errlog.sock,progname,"Waiting for scan boundary.");
