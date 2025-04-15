@@ -243,7 +243,6 @@ int main(int argc,char *argv[]) {
                            &frqrng,&xcnt);      
 
   if (fast) {
-    cp    += 1;
     scnsc = 60;
     scnus = 0;
   } else {
