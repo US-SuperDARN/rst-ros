@@ -109,7 +109,6 @@ int main(int argc,char *argv[]) {
   int32_t snd_bc[MAX_INTEGRATIONS_PER_SCAN];
   int32_t snd_fc[MAX_INTEGRATIONS_PER_SCAN];
   int32_t snd_nBeams_per_scan = 0;
-  int *snd_scan_times;
   int snd_iBeam;
 
   unsigned char hlp=0;
@@ -253,15 +252,13 @@ int main(int argc,char *argv[]) {
 
   nBeams_per_scan = nintgs;
 
-  sync_scan = 1;
-  scan_times = malloc(nBeams_per_scan*sizeof(int));
+  sync_scan = 0;
+
   for (iBeam = 0; iBeam < nBeams_per_scan; iBeam++) {
     scan_beam_number_list[iBeam] = bms[iBeam];
-    scan_times[iBeam] = iBeam * (intsc*1000 + intus/1000); /* in ms */
   }
 
   snd_nBeams_per_scan = (snd_sc-time_needed)/(snd_intt_sc + snd_intt_us*1e-6);
-  snd_scan_times = malloc(snd_nBeams_per_scan*sizeof(int));
 
   /* Automatically calculate the integration times */
   total_scan_usecs = (scnsc-snd_sc)*1E6 + scnus;
@@ -550,11 +547,10 @@ int main(int argc,char *argv[]) {
     }
 
     snd_iBeam = 0;
-    sync_scan = 0;
 
     /* send sounding scan data to usrp_sever */
     if (SiteStartScan(snd_nBeams_per_scan, snd_beam_number_list, snd_clrfreq_fstart_list,
-                      snd_clrfreq_bandwidth_list, 0, sync_scan, snd_scan_times, snd_sc, 0,
+                      snd_clrfreq_bandwidth_list, 0, sync_scan, scan_times, snd_sc, 0,
                       snd_intt_sc, snd_intt_us, snd_iBeam) !=0) {
       ErrLog(errlog.sock,progname,"Received error from usrp_server in ROS:SiteStartScan. Probably channel frequency issue in SetActiveHandler.");
       sleep(1);
@@ -656,7 +652,6 @@ int main(int argc,char *argv[]) {
       snd_freq_cnt = snd_fc[snd_iBeam-1];
     }
 
-    sync_scan = 1;
     intsc = fast_intt_sc;
     intus = fast_intt_us;
     nrang = def_nrang;
