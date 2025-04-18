@@ -658,8 +658,6 @@ int SiteRosIntegrate(int (*lags)[2]) {
   int ioff=IMAG_BUF_OFFSET;
   int rngoff=2;
 
-  struct timeval tick;
-  struct timeval tack;
   struct ROSMsg smsg,rmsg;
 
   int iqoff=0; /* Sequence offset in bytes for current sequence relative to *
@@ -733,9 +731,6 @@ int SiteRosIntegrate(int (*lags)[2]) {
                                             calculations */
 
   badrng = ACFBadLagZero(&tsgprm,mplgs,lagtable);
-
-  gettimeofday(&tick,NULL);
-  gettimeofday(&tack,NULL);
 
   for (i=0; i<MAX_RANGE; i++) {
     pwr0[i] = 0;
@@ -947,8 +942,8 @@ int SiteRosIntegrate(int (*lags)[2]) {
       seqoff[nave] = iqsze/2;           /* Sequence offset in 16bit units */
       seqsze[nave] = total_samples*2*2; /* Sequence length in 16bit units */
 
-      seqtval[nave].tv_sec  = tick.tv_sec;
-      seqtval[nave].tv_nsec = tick.tv_usec*1000;
+      seqtval[nave].tv_sec  = dprm.event_secs;
+      seqtval[nave].tv_nsec = dprm.event_usecs*1000;
 
       if (seqbadtr[nave].start != NULL)  free(seqbadtr[nave].start);
       if (seqbadtr[nave].length != NULL) free(seqbadtr[nave].length);
@@ -1043,7 +1038,6 @@ int SiteRosIntegrate(int (*lags)[2]) {
         if (debug) fprintf(stderr,"%s seq %d :: rngoff %d rxchn %d\n",
                            station,nave,rngoff,rxchn);
       }
-      gettimeofday(&tick,NULL);
       if (debug) fprintf(stderr,"Sending ACK for seq %d\n", nave);
 
       TCPIPMsgSend(ros.sock, &nave, sizeof(int32_t));
