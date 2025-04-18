@@ -859,7 +859,7 @@ int SiteRosIntegrate(int (*lags)[2]) {
   for (nave=0; nave<number_of_sequences_in_integration_period; nave++) {
 
     TCPIPMsgRecv(ros.sock, &dprm.event_secs, sizeof(uint32_t));
-    TCPIPMsgRecv(ros.sock, &dprm.event_nsecs, sizeof(uint32_t));
+    TCPIPMsgRecv(ros.sock, &dprm.event_usecs, sizeof(uint32_t));
 
     /* recieve samples from main and back array */
     if (debug)
@@ -872,7 +872,7 @@ int SiteRosIntegrate(int (*lags)[2]) {
 
     /* instead of receving a full dprm for every pulse sequence,
        now just update the fields which change between pulse sequences within an integration period
-       that would be uint32_t dprm.event_secs, and uint32_t dprm.event_nsecs
+       that would be uint32_t dprm.event_secs, and uint32_t dprm.event_usecs
        so, receive these from the usrp_server, use them to generate a new tstruct and update dprm
      */
 

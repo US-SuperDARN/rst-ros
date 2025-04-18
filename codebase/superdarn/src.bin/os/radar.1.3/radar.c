@@ -320,7 +320,7 @@ int operate(pid_t parent,int sock) {
           usleep((int)(usecs*0.5));
 
           TCPIPMsgSend(sock, &dprm.event_secs, sizeof(uint32_t));
-          TCPIPMsgSend(sock, &dprm.event_nsecs, sizeof(uint32_t));
+          TCPIPMsgSend(sock, &dprm.event_usecs, sizeof(uint32_t));
 
           TCPIPMsgSend(sock, rdata.main, 4*dprm.samples);
           TCPIPMsgSend(sock, rdata.back, 4*dprm.samples);
