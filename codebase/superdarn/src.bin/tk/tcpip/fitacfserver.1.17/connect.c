@@ -52,7 +52,7 @@ extern char logfname[256];
 
 void close_sock(int i) {
   if ((i<msgmax) && (client[i].sock !=-1)) {
-    char logbuf[256];
+    char logbuf[512];
     sprintf(logbuf,"%s : Close Connection (%d/%d).",client[i].host,i,CLIENT_MAX);
     loginfo(logfname,logbuf);
     close(client[i].sock);
@@ -63,7 +63,7 @@ void close_sock(int i) {
 
 int open_sock(int sock,fd_set *fdset) {
   int i,status;
-  char logbuf[256];
+  char logbuf[512];
   char hostbuf[256];
   int temp;
   socklen_t clength;

@@ -44,7 +44,7 @@ extern char logfname[256];
   
 int fork_inet(int port) {
   FILE *fp;
-  char logbuf[256];  
+  char logbuf[512];  
   int status;
   int sock;
   int pipeid[2];

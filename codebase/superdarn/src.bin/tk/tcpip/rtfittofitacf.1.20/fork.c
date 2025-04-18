@@ -47,7 +47,7 @@ extern char timefname[256];
 
 int forkinet(int port) {
   FILE *fp;
-  char logbuf[256];  
+  char logbuf[512];  
   int status;
   int sock;
   int pipeid[2];
