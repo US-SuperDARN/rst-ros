@@ -506,33 +506,8 @@ int SiteRosFCLR(int stfreq,int edfreq) {
   int32 tfreq;
   struct ROSMsg smsg,rmsg;
   struct CLRFreqPRM fprm;
-  int total_samples=0;
 
   SiteRosExit(0);
-
-  total_samples = tsgprm.samples + tsgprm.smdelay;
-  rprm.tbeam = bmnum;
-  rprm.tfreq = tfreq;
-  rprm.rfreq = tfreq;
-  rprm.trise = 5000;
-  rprm.baseband_samplerate = ((double)nbaud/(double)txpl)*1E6;
-  rprm.filter_bandwidth    = rprm.baseband_samplerate;
-  rprm.match_filter        = dmatch;
-  rprm.number_of_samples   = total_samples + nbaud + 10;
-  rprm.priority            = cnum;
-  rprm.buffer_index        = 0;
-  strncpy(rprm.name,station,10);
-
-/* Not needed with SwingBuffer
-  smsg.type = SET_PARAMETERS;
-  TCPIPMsgSend(ros.sock,&smsg,sizeof(struct ROSMsg));
-  TCPIPMsgSend(ros.sock,&rprm,sizeof(struct ControlPRM));
-  TCPIPMsgRecv(ros.sock,&rmsg,sizeof(struct ROSMsg));
-  if (debug) {
-    fprintf(stderr,"SET_PARAMETERS:type=%c\n",rmsg.type);
-    fprintf(stderr,"SET_PARAMETERS:status=%d\n",rmsg.status);
-  }
-*/
 
   fprm.start = stfreq;
   fprm.end   = edfreq;
@@ -552,7 +527,7 @@ int SiteRosFCLR(int stfreq,int edfreq) {
   TCPIPMsgSend(ros.sock, &smsg, sizeof(struct ROSMsg));
   TCPIPMsgRecv(ros.sock,&tfreq, sizeof(int32));
   TCPIPMsgRecv(ros.sock,&noise, sizeof(float));
-  TCPIPMsgRecv(ros.sock,&rmsg, sizeof(struct ROSMsg));
+  TCPIPMsgRecv(ros.sock, &rmsg, sizeof(struct ROSMsg));
   if (debug) {
     fprintf(stderr,"REQUEST_ASSIGNED_FREQ:type=%c\n",rmsg.type);
     fprintf(stderr,"REQUEST_ASSIGNED_FREQ:status=%d\n",rmsg.status);
