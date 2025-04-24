@@ -74,7 +74,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"pcppcodescan"};
+char progid[80]={"pcppcodescan 2025/04/24"};
 char progname[256];
 
 int arg=0;
@@ -247,7 +247,7 @@ int main(int argc,char *argv[]) {
   nBeams_per_scan = abs(ebm-sbm)+1;
   current_beam = sbm;
 
-  for (iBeam =0; iBeam < nBeams_per_scan; iBeam++) {
+  for (iBeam=0; iBeam < nBeams_per_scan; iBeam++) {
     scan_beam_number_list[iBeam] = current_beam;
     current_beam += backward ? -1:1;
   }
@@ -341,6 +341,9 @@ int main(int argc,char *argv[]) {
     exit(-1);
   }
 
+  /* Synchronize start of first scan to minute boundary */
+  SiteEndScan(scnsc,scnus,5000);
+
   do {
 
     /* reset clearfreq parameters, in case daytime changed */
@@ -350,7 +353,7 @@ int main(int argc,char *argv[]) {
     }
 
     /* set iBeam for scan loop */
-    iBeam = OpsFindSkip(scnsc,scnus,intsc,intus,nBeams_per_scan);
+    iBeam = 0;
 
     /* send scan data to usrp_sever */
     printf("Entering Site Start Scan Station ID: %s  %d\n",ststr,stid);

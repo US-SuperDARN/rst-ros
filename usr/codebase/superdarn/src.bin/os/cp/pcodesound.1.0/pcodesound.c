@@ -57,7 +57,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"pcodesound 2025/04/14"};
+char progid[80]={"pcodesound 2025/04/24"};
 char progname[256];
 
 int arg=0;
@@ -302,7 +302,7 @@ int main(int argc,char *argv[])
 
   sync_scan = 0;
 
-  for (iBeam =0; iBeam < nBeams_per_scan; iBeam++) {
+  for (iBeam=0; iBeam < nBeams_per_scan; iBeam++) {
     scan_beam_number_list[iBeam] = current_beam;
     current_beam += backward ? -1:1;
   }
@@ -392,6 +392,9 @@ int main(int argc,char *argv[])
     tsgid=SiteTimeSeq(seq->ptab);
   }
 
+  /* Synchronize start of first scan to minute boundary */
+  SiteEndScan(scnsc,scnus,5000);
+
   printf("Entering Scan loop Station ID: %s  %d\n",ststr,stid);
   do {
 
@@ -412,13 +415,13 @@ int main(int argc,char *argv[])
     }
 
     /* reset clearfreq paramaters, in case daytime changed */
-    for (iBeam =0; iBeam < nBeams_per_scan; iBeam++) {
+    for (iBeam=0; iBeam < nBeams_per_scan; iBeam++) {
       scan_clrfreq_fstart_list[iBeam] = (int32_t) (OpsDayNight() == 1 ? dfrq : nfrq);
       scan_clrfreq_bandwidth_list[iBeam] = frqrng;
     }
 
     /* Set iBeam for scan loop  */
-    iBeam = OpsFindSkip(scnsc,scnus,intsc,intus,nBeams_per_scan);
+    iBeam = 0;
 
     /* send scan data to usrp_sever */
     if (SiteStartScan(nBeams_per_scan, scan_beam_number_list, scan_clrfreq_fstart_list,
@@ -583,7 +586,7 @@ int main(int argc,char *argv[])
 
     /* Print out details of sounding beams */
     fprintf(stderr, "Sounding sequence details: \n");
-    for (snd_iBeam =0; snd_iBeam < snd_nBeams_per_scan; snd_iBeam++) {
+    for (snd_iBeam=0; snd_iBeam < snd_nBeams_per_scan; snd_iBeam++) {
       fprintf(stderr, "  sequence %2d: beam: %2d freq: %5d, \n",snd_iBeam,
               snd_beam_number_list[snd_iBeam], snd_clrfreq_fstart_list[snd_iBeam] );
     }

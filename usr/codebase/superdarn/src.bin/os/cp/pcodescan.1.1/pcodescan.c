@@ -54,7 +54,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"pcodescan"};
+char progid[80]={"pcodescan 2025/04/24"};
 char progname[256];
 
 int arg=0;
@@ -273,7 +273,7 @@ int main(int argc,char *argv[]) {
     scan_times = malloc(nBeams_per_scan*sizeof(int));
   }
 
-  for (iBeam =0; iBeam < nBeams_per_scan; iBeam++) {
+  for (iBeam=0; iBeam < nBeams_per_scan; iBeam++) {
     scan_beam_number_list[iBeam] = current_beam;
     current_beam += backward ? -1:1;
     if (bm_sync) scan_times[iBeam] = iBeam * (bmsc*1000 + bmus/1000); /* in ms*/
@@ -353,6 +353,9 @@ int main(int argc,char *argv[]) {
 
   if (FreqTest(ftable,fixfrq) == 1) fixfrq = 0;
 
+  /* Synchronize start of first scan to minute boundary */
+  if (nowait==0) SiteEndScan(scnsc,scnus,5000);
+
   printf("Entering Scan loop Station ID: %s  %d\n",ststr,stid);
   do {
 
@@ -363,11 +366,7 @@ int main(int argc,char *argv[]) {
     }
 
     /* set iBeam for scan loop */
-    if (nowait == 0) {
-      iBeam = OpsFindSkip(scnsc,scnus,intsc,intus,nBeams_per_scan);
-    } else {
-      iBeam = 0;
-    }
+    iBeam = 0;
 
     /* send scan data to usrp_sever */
     printf("Entering Site Start Scan Station ID: %s  %d\n",ststr,stid);

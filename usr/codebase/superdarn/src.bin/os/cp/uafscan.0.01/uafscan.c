@@ -78,7 +78,7 @@ int rst_opterr(char *txt) {
 
 
 int main(int argc,char *argv[]) {
-  char progid[80]={"uafscan"};
+  char progid[80]={"uafscan 2025/04/24"};
   char progname[256]="uafscan";
   char modestr[32];
 
@@ -701,6 +701,9 @@ int main(int argc,char *argv[]) {
   printf("Preparing SiteTimeSeq Station ID: %s  %d\n",ststr,stid);
   tsgid=SiteTimeSeq(seq->ptab);
 
+  /* Synchronize start of first scan to minute boundary */
+  SiteEndScan(scnsc,scnus,5000);
+
   printf("Entering Scan loop Station ID: %s  %d\n",ststr,stid);
   do {
     /* reset clearfreq paramaters, in case daytime changed */
@@ -711,10 +714,7 @@ int main(int argc,char *argv[]) {
     }
 
     /* Set iBeam for scan loop  */
-    if (nowait==0)
-       iBeam = OpsFindSkip(scnsc,scnus,intsc,intus,nBeams_per_scan);
-    else 
-       iBeam = 0;
+    iBeam = 0;
 
     /* send stan data to usrp_sever */
     if (SiteStartScan(nBeams_per_scan, scan_beam_number_list, scan_clrfreq_fstart_list,

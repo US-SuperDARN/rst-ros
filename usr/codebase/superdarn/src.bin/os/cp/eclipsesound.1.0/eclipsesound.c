@@ -53,7 +53,7 @@ char *dfststr="tst";
 char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
-char progid[80]={"eclipsesound 2025/04/14"};
+char progid[80]={"eclipsesound 2025/04/24"};
 char progname[256];
 int arg=0;
 struct OptionData opt;
@@ -354,6 +354,9 @@ int main(int argc,char *argv[]) {
     tsgid=SiteTimeSeq(seq->ptab);  /* get the timing sequence */
   }
 
+  /* Synchronize start of first scan to minute boundary */
+  SiteEndScan(scnsc,scnus,5000);
+
   do {
 
     if ((def_nrang != snd_nrang) || (def_rsep != snd_rsep)) {
@@ -367,7 +370,7 @@ int main(int argc,char *argv[]) {
     }
 
     /* Set iBeam for scan loop  */
-    iBeam = OpsFindSkip(scnsc,scnus,intsc,intus,nBeams_per_scan);
+    iBeam = 0;
 
     /* send scan data to usrp_sever */
     if (SiteStartScan(nBeams_per_scan, scan_beam_number_list, scan_clrfreq_fstart_list,

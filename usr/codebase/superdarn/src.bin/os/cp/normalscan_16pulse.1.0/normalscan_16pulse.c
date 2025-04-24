@@ -53,7 +53,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"normalscan_16pulse 2023/09/18"};
+char progid[80]={"normalscan_16pulse 2025/04/24"};
 char progname[256];
 
 int arg=0;
@@ -242,7 +242,7 @@ int main(int argc,char *argv[])
     scnus = 0;
   }
 
-  for (iBeam =0; iBeam < nBeams_per_scan; iBeam++) {
+  for (iBeam=0; iBeam < nBeams_per_scan; iBeam++) {
     scan_beam_number_list[iBeam] = current_beam;
     current_beam += backward ? -1:1;
   }
@@ -323,6 +323,9 @@ int main(int argc,char *argv[])
 
   if (FreqTest(ftable,fixfrq) == 1) fixfrq = 0;
 
+  /* Synchronize start of first scan to minute boundary */
+  if (nowait==0) SiteEndScan(scnsc,scnus,5000);
+
   printf("Entering Scan loop Station ID: %s  %d\n",ststr,stid);
   do {
 
@@ -333,11 +336,7 @@ int main(int argc,char *argv[])
     }
 
     /* set iBeam for scan loop */
-    if (nowait == 0) {
-      iBeam = OpsFindSkip(scnsc,scnus,intsc,intus,nBeams_per_scan);
-    } else {
-      iBeam = 0;
-    }
+    iBeam = 0;
 
     /* send scan data to usrp_sever */
     printf("Entering Site Start Scan Station ID: %s  %d\n",ststr,stid);
