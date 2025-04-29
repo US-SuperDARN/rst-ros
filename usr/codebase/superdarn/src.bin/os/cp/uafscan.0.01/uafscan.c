@@ -78,7 +78,7 @@ int rst_opterr(char *txt) {
 
 
 int main(int argc,char *argv[]) {
-  char progid[80]={"uafscan 2025/04/24"};
+  char progid[80]={"uafscan 2025/04/29"};
   char progname[256]="uafscan";
   char modestr[32];
 
@@ -702,7 +702,7 @@ int main(int argc,char *argv[]) {
   tsgid=SiteTimeSeq(seq->ptab);
 
   /* Synchronize start of first scan to minute boundary */
-  SiteEndScan(scnsc,scnus,5000);
+  SiteEndScan(scnsc,scnus,100000);
 
   printf("Entering Scan loop Station ID: %s  %d\n",ststr,stid);
   do {
@@ -862,7 +862,7 @@ int main(int argc,char *argv[]) {
 
     if ((exitpoll==0) && (nowait==0)) {
       ErrLog(errlog.sock,progname,"Waiting for scan boundary.");
-      SiteEndScan(scnsc,scnus,5000);
+      SiteEndScan(scnsc,scnus,50000);
     }
   } while (exitpoll==0);
   for (n=0;n<tnum;n++) RMsgSndClose(task[n].sock);

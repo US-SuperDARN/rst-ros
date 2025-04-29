@@ -1074,6 +1074,7 @@ int SiteRosEndScan(int bsc,int bus, unsigned sleepus) {
   double bnd;
   double tme;
   int count=0;
+  useconds_t sleep_left;
 
   SiteRosExit(0);
 
@@ -1093,7 +1094,7 @@ int SiteRosEndScan(int bsc,int bus, unsigned sleepus) {
   gettimeofday(&tick,NULL);
   while (1) {
     if (tick.tv_sec > tock.tv_sec) break;
-    if ((tick.tv_sec == tock.tv_sec) && (tick.tv_usec > tock.tv_usec)) break;
+    if ((tick.tv_sec == tock.tv_sec) && (tick.tv_usec >= (tock.tv_usec-2000))) break;
     smsg.type = PING;
     TCPIPMsgSend(ros.sock, &smsg, sizeof(struct ROSMsg));
     TCPIPMsgRecv(ros.sock, &rmsg, sizeof(struct ROSMsg));
@@ -1105,7 +1106,15 @@ int SiteRosEndScan(int bsc,int bus, unsigned sleepus) {
       fflush(stderr);
     }
     count++;
-    usleep(sleepus);
+    SiteRosExit(0);
+    sleep_left = (tock.tv_sec-tick.tv_sec)*USEC + (tock.tv_usec-tick.tv_usec) - 2000;
+    if (sleep_left < sleepus) {
+      usleep(sleep_left);
+      break;
+    } else {
+      usleep(sleepus);
+    }
+    SiteRosExit(0);
     gettimeofday(&tick,NULL);
   }
 

@@ -60,7 +60,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"onebeamscan 2025/04/24"};
+char progid[80]={"onebeamscan 2025/04/29"};
 char progname[256];
 
 int arg=0;
@@ -340,7 +340,7 @@ int main(int argc,char *argv[]) {
   if (FreqTest(ftable,fixfrq) == 1) fixfrq = 0;
 
   /* Synchronize start of first scan to minute boundary */
-  if (nowait==0) SiteEndScan(scnsc,scnus,5000);
+  if (nowait==0) SiteEndScan(scnsc,scnus,100000);
 
   printf("Entering Scan loop Station ID: %s  %d\n",ststr,stid);
   do {
@@ -479,7 +479,7 @@ int main(int argc,char *argv[]) {
     } while (1);
 
     ErrLog(errlog.sock,progname,"Waiting for scan boundary."); 
-    if (nowait==0) SiteEndScan(scnsc,scnus,5000);
+    if (nowait==0) SiteEndScan(scnsc,scnus,50000);
   } while (1);
   
   for (n=0;n<tnum;n++) RMsgSndClose(task[n].sock);

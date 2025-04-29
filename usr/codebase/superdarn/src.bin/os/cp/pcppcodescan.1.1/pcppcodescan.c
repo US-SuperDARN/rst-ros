@@ -74,7 +74,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"pcppcodescan 2025/04/24"};
+char progid[80]={"pcppcodescan 2025/04/29"};
 char progname[256];
 
 int arg=0;
@@ -342,7 +342,7 @@ int main(int argc,char *argv[]) {
   }
 
   /* Synchronize start of first scan to minute boundary */
-  SiteEndScan(scnsc,scnus,5000);
+  SiteEndScan(scnsc,scnus,100000);
 
   do {
 
@@ -561,7 +561,7 @@ int main(int argc,char *argv[]) {
     intus = def_intt_us;
 
     ErrLog(errlog.sock,progname,"Waiting for scan boundary.");
-    SiteEndScan(scnsc,scnus,5000);
+    SiteEndScan(scnsc,scnus,50000);
 
   } while (1);
 

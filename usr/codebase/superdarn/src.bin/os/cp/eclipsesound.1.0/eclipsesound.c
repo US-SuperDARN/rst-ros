@@ -53,7 +53,7 @@ char *dfststr="tst";
 char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
-char progid[80]={"eclipsesound 2025/04/24"};
+char progid[80]={"eclipsesound 2025/04/29"};
 char progname[256];
 int arg=0;
 struct OptionData opt;
@@ -355,7 +355,7 @@ int main(int argc,char *argv[]) {
   }
 
   /* Synchronize start of first scan to minute boundary */
-  SiteEndScan(scnsc,scnus,5000);
+  SiteEndScan(scnsc,scnus,100000);
 
   do {
 
@@ -496,7 +496,7 @@ int main(int argc,char *argv[]) {
 
     } while (1);
 
-    SiteEndScan(1,0,50);
+    SiteEndScan(1,0,5000);
 
     /* In here comes the sounder code */
     /* set the "sounder mode" scan variable */
@@ -648,7 +648,7 @@ int main(int argc,char *argv[]) {
     rsep = def_rsep;
     txpl = def_txpl;
 
-    SiteEndScan(scnsc,scnus,5000);
+    SiteEndScan(scnsc,scnus,50000);
 
   } while (1);
 
