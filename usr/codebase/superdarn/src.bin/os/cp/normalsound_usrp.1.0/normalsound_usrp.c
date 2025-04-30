@@ -55,7 +55,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"normalsound_usrp 2025/04/29"};
+char progid[80]={"normalsound_usrp 2025/04/30"};
 char progname[256];
 
 int arg=0;
@@ -403,9 +403,9 @@ int main(int argc,char *argv[]) {
       stfrq = scan_clrfreq_fstart_list[iBeam];
 
       if ((bmnum == snd_bms[0]) && (stfrq == snd_freqs[0])) {
-        prm->scan = 1;
+        scan = 1;
       } else {
-        prm->scan = 0;
+        scan = 0;
       }
 
       sprintf(logtxt,"Integrating beam:%d intt:%ds.%dus (%02d:%02d:%02d:%06d)",
