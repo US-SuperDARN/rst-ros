@@ -107,6 +107,8 @@ int main(int argc,char *argv[]) {
   unsigned char option=0;
   unsigned char version=0;
 
+  unsigned char snd_flg=0;
+
   /* Flag and variables for beam synchronizing */
   int bm_sync = 0;
   int bmsc    = 6;
@@ -150,6 +152,7 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt, "fast",   'x', &fast);
   OptionAdd(&opt, "nowait", 'x', &nowait);
   OptionAdd(&opt, "nb",     'i', &nbm); /* number of beams per "scan"; default is 16 */
+  OptionAdd(&opt, "snd",    'x', &snd_flg);    /* write snd data file */
   OptionAdd(&opt, "sfrqrng",'i', &snd_frqrng); /* sounding FCLR window [kHz] */
   OptionAdd(&opt, "bm_sync",'x', &bm_sync);    /* flag to enable beam sync    */
   OptionAdd(&opt, "bmsc",   'i', &bmsc);       /* beam sync period, sec       */
@@ -450,6 +453,11 @@ int main(int argc,char *argv[]) {
 
       FitACF(prm,raw,fblk,fit,site,tdiff,-999);
       FitSetAlgorithm(fit,"fitacf2");
+
+      if (snd_flg) {
+        OpsBuildSnd(snd,prm,fit);
+        OpsWriteSnd(errlog.sock, progname, snd, ststr);
+      }
 
       msg.num=0;
       msg.tsize=0;
