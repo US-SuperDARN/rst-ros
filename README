@@ -171,29 +171,17 @@ is now set by default to the USR_BINPATH environment variable).
 Running the Radar
 -----------------
 
-Two scripts control the operation of the radar(s):
+Two scripts control the operation of the radar:
 
 start.radar   - starts the supporting tasks and scheduler process
 stop.radar    - stops all radar tasks
 
-Three scripts are available for testing the operation of the radar(s):
+A script is also available for testing the operation of the radar:
 
-test.radar    - tests the operation of both radars
-test.east     - tests the operation of the east radar
-test.west     - tests the operation of the west radar
+test.radar    - tests the operation of the radar
 
-For dual radar sites, make sure the correct three-letter station ID
-codes are assigned to the "east" and "west" variables in the start
-and test scripts. For single radar sites, the three-letter station
-ID code can be assigned to the "east" variable and lines corresponding
-to the "west" radar should be commented out or removed.
-
-Note that when using the "dummy" radar simulator with the above test
-scripts, the "ros.host" value in the site configuration file should
-be set to the localhost IP address (127.0.0.1 by default). Alternatively,
-the ROS hostname can be set to the localhost IP address using the
-"-ros" command line option with the appropriate control program in the
-schedule file.
+Make sure the correct three-letter station ID code is assigned to the
+"radar" variable in the start and test scripts.
 
 
 Monitoring the Data
