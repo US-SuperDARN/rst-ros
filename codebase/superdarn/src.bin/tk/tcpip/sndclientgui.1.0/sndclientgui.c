@@ -105,6 +105,7 @@ struct PlotOptions {
   int f;
   int snd;
   int hold;
+  int force;
 };
 
 struct OptionData opt;
@@ -177,6 +178,7 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt,"emax",'d',&plot.emax);
 
   OptionAdd(&opt,"snd",'x',&plot.sndflg);
+  OptionAdd(&opt,"force",'x',&plot.force);
 
   arg=OptionProcess(1,argc,argv,&opt,rst_opterr);
 
@@ -289,8 +291,13 @@ int main(int argc,char *argv[]) {
     if (flag !=-1) {
 
       /* Store data from most recent beam in buffer */
-      if (prm->scan == -2) read_snd_data(prm,fit,&sbuf,&plot);
-      else                 read_fit_data(prm,fit,&fbuf,&plot);
+      if (plot.force) {
+        read_snd_data(prm,fit,&sbuf,&plot);
+        read_fit_data(prm,fit,&fbuf,&plot);
+      } else {
+        if (prm->scan == -2) read_snd_data(prm,fit,&sbuf,&plot);
+        else                 read_fit_data(prm,fit,&fbuf,&plot);
+      }
 
       /* Print date/time and radar operating parameters */
       print_radar_param(prm,fit);
@@ -358,6 +365,7 @@ void init_plot(struct PlotOptions *plot) {
   plot->f = 0;
   plot->snd = 0;
   plot->hold = 0;
+  plot->force = 0;
 }
 
 
@@ -688,9 +696,9 @@ void draw_fit_data(struct RadarParm *prm, struct FitBuffer *fbuf, struct PlotOpt
 
     if (fbuf->beam[j] == 0) continue;
 
-    if ((j==prm->bmnum) && !plot->snd && plot->colorflg) attron(COLOR_PAIR(6));
+    if ((j==prm->bmnum) && (!plot->snd || plot->force) && plot->colorflg) attron(COLOR_PAIR(6));
     printw("%02d: ",j);
-    if ((j==prm->bmnum) && !plot->snd && plot->colorflg) attroff(COLOR_PAIR(6));
+    if ((j==prm->bmnum) && (!plot->snd || plot->force) && plot->colorflg) attroff(COLOR_PAIR(6));
 
     for (i=0; i<plot->nrng; i++) {
       if (fbuf->qflg[j][i] == 1) {
@@ -754,9 +762,9 @@ void draw_snd_data(struct RadarParm *prm, struct SndBuffer *sbuf, struct PlotOpt
     move(j+13, 0);
     clrtoeol();
 
-    if ((j==plot->f) && (prm->bmnum==plot->b) && plot->snd && plot->colorflg) attron(COLOR_PAIR(6));
+    if ((j==plot->f) && (prm->bmnum==plot->b) && (plot->snd || plot->force) && plot->colorflg) attron(COLOR_PAIR(6));
     printw("%3d ",j*5+80);
-    if ((j==plot->f) && (prm->bmnum==plot->b) && plot->snd && plot->colorflg) attroff(COLOR_PAIR(6));
+    if ((j==plot->f) && (prm->bmnum==plot->b) && (plot->snd || plot->force) && plot->colorflg) attroff(COLOR_PAIR(6));
 
     if (sbuf->beam[plot->b][j] == 0) continue;
 
