@@ -7,7 +7,7 @@ export VISUAL="vim"
 export EDITOR="$VISUAL"
 
 if [ -z "${RSTPATH}" ] ; then
-  export RSTPATH="/home/radar_user/rst-ros"
+  export RSTPATH="/home/radar_user/repos/rst-ros"
 fi
 
 . $RSTPATH/.profile/ros.bash
