@@ -13,9 +13,7 @@
 </option>
 <option><on>-vb</on><od>verbose. Log information to the console.</od>
 </option>
-<option><on>-lp <ar>lport</ar></on><od>listen for messages to the QNX ROS server on the local port number <ar>lport</ar> (default is 45000).</od>
-</option>
-<option><on>-name <ar>stid</ar></on><od>use the restricted frequency information for the radars listed in <ar>stid</ar> which is a comma separated list of three-letter station identifier codes.</od>
+<option><on>-lp <ar>lport</ar></on><od>listen for messages to the USRP ROS server on the local port number <ar>lport</ar> (default is 45000).</od>
 </option>
 <synopsis><p>A dummy radar task that simulates the response of the radar hardware. Note the ROS IP address may need to be changed to 127.0.0.1 (or localhost), either in the radar site configuration file or via the control program command line options, for this task to work.</p></synopsis>
 
