@@ -1809,12 +1809,12 @@ int main(int argc,char *argv[]) {
   txtbox(tfontname,tfontsize,strlen(txt),txt,box,fontdb);
   lnehgt=1.5*(box[2]-box[1]);
 
-  sprintf(txt,"Station:%s (%s)",RadarGetName(network,stid),
+  sprintf(txt,"Station: %s (%s)",RadarGetName(network,stid),
           RadarGetCode(network,stid,0));
   PlotText(plot,NULL,tfontname,tfontsize,2,lnehgt,
            strlen(txt),txt,txtcolor,0x0f,0);
 
-  sprintf(txt,"Operated by:%s",RadarGetOperator(network,stid));
+  sprintf(txt,"Operator: %s",RadarGetOperator(network,stid));
   PlotText(plot,NULL,tfontname,tfontsize,2,2*lnehgt,
            strlen(txt),txt,txtcolor,0x0f,0);
 
@@ -1833,7 +1833,7 @@ int main(int argc,char *argv[]) {
 
   strcpy(txt,"Program ID");
   if (cpnum>1) strcat(txt,"s");
-  strcat(txt,":");
+  strcat(txt,": ");
   for (i=0;i<cpnum;i++) {
     if (i !=0) strcat(txt,",");
     sprintf(tmp,"%d",cptab[i]);
@@ -1858,8 +1858,8 @@ int main(int argc,char *argv[]) {
            strlen(txt),txt,txtcolor,0x0f,0);
 
   if (chnum !=-1) {
-    if (chnum==1) sprintf(txt,"Channel:A");
-    else sprintf(txt,"Channel:B");
+    if (chnum==1) sprintf(txt,"Channel: A");
+    else sprintf(txt,"Channel: B");
     txtbox(tfontname,tfontsize,strlen(txt),txt,box,fontdb);
     PlotText(plot,NULL,tfontname,tfontsize,(wdt-box[0])/2,2*lnehgt,
              strlen(txt),txt,txtcolor,0x0f,0);
