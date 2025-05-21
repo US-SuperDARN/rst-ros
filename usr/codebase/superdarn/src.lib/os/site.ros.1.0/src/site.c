@@ -354,6 +354,16 @@ int SiteRosSetupRadar() {
     fprintf(stderr,"SET_RADAR_CHAN:status=%d\n",rmsg.status);
   }
 
+  smsg.type = QUERY_INI_SETTINGS;
+  TCPIPMsgSend(ros.sock, &smsg,  sizeof(struct ROSMsg));
+  TCPIPMsgRecv(ros.sock, &txpow, sizeof(int));
+  TCPIPMsgRecv(ros.sock, &atten, sizeof(int));
+  TCPIPMsgRecv(ros.sock, &rmsg,  sizeof(struct ROSMsg));
+  if (debug) {
+    fprintf(stderr,"QUERY_INI_SETTINGS:type=%c\n",rmsg.type);
+    fprintf(stderr,"QUERY_INI_SETTINGS:status=%d\n",rmsg.status);
+  }
+
   smsg.type = GET_PARAMETERS;
   TCPIPMsgSend(ros.sock, &smsg, sizeof(struct ROSMsg));
   TCPIPMsgRecv(ros.sock, &rprm, sizeof(struct ControlPRM));
