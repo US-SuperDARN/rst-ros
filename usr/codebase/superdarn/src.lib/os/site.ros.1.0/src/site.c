@@ -327,11 +327,10 @@ int SiteRosStart(char *host,char *ststr) {
 int SiteRosSetupRadar() {
 
   int32 temp32,data_length;
-  char ini_entry_name[80];
-  char requested_entry_type,returned_entry_type;
   struct ROSMsg smsg,rmsg;
 
   if ((ros.sock=TCPIPMsgOpen(ros.host,ros.port)) == -1) return -1;
+
   smsg.type = SET_RADAR_CHAN;
   TCPIPMsgSend(ros.sock, &smsg,sizeof(struct ROSMsg));
   temp32 = stid;
@@ -353,36 +352,6 @@ int SiteRosSetupRadar() {
   if (debug) {
     fprintf(stderr,"SET_RADAR_CHAN:type=%c\n",rmsg.type);
     fprintf(stderr,"SET_RADAR_CHAN:status=%d\n",rmsg.status);
-  }
-
-  smsg.type = QUERY_INI_SETTINGS;
-  TCPIPMsgSend(ros.sock, &smsg, sizeof(struct ROSMsg));
-  sprintf(ini_entry_name,"site_settings:ifmode");
-  requested_entry_type = 'b';
-  returned_entry_type  = ' ';
-  temp32 = -1;
-  ifmode = -1;
-  data_length = strlen(ini_entry_name)+1;
-  TCPIPMsgSend(ros.sock, &data_length, sizeof(int32));
-  TCPIPMsgSend(ros.sock, &ini_entry_name, data_length*sizeof(char));
-  TCPIPMsgSend(ros.sock, &requested_entry_type, sizeof(char));
-  TCPIPMsgRecv(ros.sock, &returned_entry_type, sizeof(char));
-  TCPIPMsgRecv(ros.sock, &data_length, sizeof(int32));
-  if (returned_entry_type == requested_entry_type)
-    TCPIPMsgRecv(ros.sock, &temp32, sizeof(int32));
-
-  TCPIPMsgRecv(ros.sock, &rmsg, sizeof(struct ROSMsg));
-  if (debug) {
-    fprintf(stderr,"QUERY_INI_SETTINGS:type=%c\n",rmsg.type);
-    fprintf(stderr,"QUERY_INI_SETTINGS:status=%d\n",rmsg.status);
-    fprintf(stderr,"QUERY_INI_SETTINGS:entry_name=%s\n",ini_entry_name);
-    fprintf(stderr,"QUERY_INI_SETTINGS:entry_type=%c\n",returned_entry_type);
-    fprintf(stderr,"QUERY_INI_SETTINGS:entry_value=%d\n",temp32);
-  }
-  if ((rmsg.status) && (temp32 >= 0)) ifmode = temp32;
-  if ((ifmode != 0) && (ifmode != 1)) {
-    fprintf(stderr,"QUERY_INI_SETTINGS: Bad IFMODE)\n");
-    exit(0);
   }
 
   smsg.type = GET_PARAMETERS;
