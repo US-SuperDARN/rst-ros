@@ -1963,6 +1963,14 @@ int main(int argc,char *argv[]) {
         }
       }
 
+     if ((repeat==0) && (channel != 0)) {
+       if (channel==1) sprintf(txt,"Channel: A");
+       else sprintf(txt,"Channel: B");
+       txtbox("Helvetica",12.0,strlen(txt),txt,box,fontdb);
+       PlotText(plot,NULL,"Helvetica",12.0,(wdt-box[0])/2,ybox+5+box[2],
+               strlen(txt),txt,txtcol,0x0f,0);
+     }
+
      if (logoflg==1) {
        if (repeat==0) {
          plot_logo(plot,4,4,wdt-8,hgt-18,txtcol,0x0f,"Helvetica",10.0,fontdb);
