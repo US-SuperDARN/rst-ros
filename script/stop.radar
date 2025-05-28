@@ -17,3 +17,5 @@ killall -9 errlog
 
 killall -9 radar
 
+killall -9 noopscan
+
