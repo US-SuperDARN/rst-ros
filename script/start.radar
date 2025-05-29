@@ -41,7 +41,7 @@ python3 /home/radar_user/repos/SuperDARN_UHD_Server/tools/srr_watchdog.py server
 
 sleep 25
 
-ssh radar_user@$RADAR_2 '/home/radar_user/repos/rst-ros/script/start.radar2 &' &
+ssh radar_user@$RADAR_2 '/home/radar_user/repos/rst-ros/script/start.remote &' &
 
 sleep 5
 

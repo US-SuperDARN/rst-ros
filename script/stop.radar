@@ -2,7 +2,7 @@
 
 # Kill USRP drivers and CUDA driver on second radar:
 RADAR_2=192.168.100.2
-ssh radar_user@$RADAR_2 '/home/radar_user/repos/rst-ros/script/stop.radar2'
+ssh radar_user@$RADAR_2 '/home/radar_user/repos/rst-ros/script/stop.remote &' &
 
 pkill -KILL -f srr_watchdog.py
 
