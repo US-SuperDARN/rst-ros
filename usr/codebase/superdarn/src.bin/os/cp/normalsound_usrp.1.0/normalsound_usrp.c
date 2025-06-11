@@ -55,7 +55,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"normalsound_usrp 2025/04/30"};
+char progid[80]={"normalsound_usrp 2025/06/11"};
 char progname[256];
 
 int arg=0;
@@ -116,10 +116,8 @@ int main(int argc,char *argv[]) {
 
   /* ---------------- Variables for sounding --------------- */
   int *snd_bms;
-  int snd_bmse[]={0,2,4,6,8,10,12,14,16,18};   /* beam sequences for 24-beam MSI radars using only */
-  int snd_bmsw[]={22,20,18,16,14,12,10,8,6,4}; /*  the 20 most meridional beams */
   int snd_freq_cnt=0, snd_bm_cnt=0;
-  int snd_bms_tot=10, odd_beams=0;
+  int snd_bms_tot=0;
   int snd_frqrng=100;
   /* ------------------------------------------------------- */
 
@@ -152,6 +150,8 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt, "fast",   'x', &fast);
   OptionAdd(&opt, "nowait", 'x', &nowait);
   OptionAdd(&opt, "nb",     'i', &nbm); /* number of beams per "scan"; default is 16 */
+  OptionAdd(&opt, "sb",     'i', &sbm);
+  OptionAdd(&opt, "eb",     'i', &ebm);
   OptionAdd(&opt, "snd",    'x', &snd_flg);    /* write snd data file */
   OptionAdd(&opt, "sfrqrng",'i', &snd_frqrng); /* sounding FCLR window [kHz] */
   OptionAdd(&opt, "bm_sync",'x', &bm_sync);    /* flag to enable beam sync    */
@@ -186,6 +186,8 @@ int main(int argc,char *argv[]) {
     exit(0);
   }
 
+  backward = (sbm > ebm) ? 1 : 0;   /* allow for non-standard scan dir. */
+
   if (hlp) {
     usage();
 
@@ -195,20 +197,6 @@ int main(int argc,char *argv[]) {
   if (ststr==NULL) ststr=dfststr;
 
   channel = cnum;
-
-  /* Point to the beams here */
-  if ((strcmp(ststr,"cve") == 0) || (strcmp(ststr,"ice") == 0) || (strcmp(ststr,"fhe") == 0)) {
-    snd_bms = snd_bmse;
-  } else if ((strcmp(ststr,"cvw") == 0) || (strcmp(ststr,"icw") == 0) || (strcmp(ststr,"bks") == 0)) {
-    snd_bms = snd_bmsw;
-  } else if (strcmp(ststr,"fhw") == 0) {
-    snd_bms = snd_bmsw;
-    for (i=0; i<snd_bms_tot; i++)
-      snd_bms[i] -= 2;
-  } else {
-    snd_bms = snd_bmse;
-    snd_bms_tot = 8;
-  }
 
   OpsStart(ststr);
 
@@ -229,6 +217,7 @@ int main(int argc,char *argv[]) {
 
   /* reprocess the commandline since some things are reset by SiteStart */
   arg=OptionProcess(1,argc,argv,&opt,NULL);
+  backward = (sbm > ebm) ? 1 : 0;   /* this almost certainly got reset */
 
   if (fast) sprintf(progname,"normalsound_usrp (fast)");
   else sprintf(progname,"normalsound_usrp");
@@ -269,6 +258,31 @@ int main(int argc,char *argv[]) {
     for (iBeam=0; iBeam < nBeams_per_scan; iBeam++) {
       scan_times[iBeam] = iBeam * (bmsc*1000 + bmus/1000); /* in ms*/
     }
+  }
+
+  /* Create sounding beam list */
+  snd_bms_tot = abs(sbm-ebm)+1;
+  snd_bms = malloc(snd_bms_tot*sizeof(int));
+  iBeam = 0;
+
+  /* Find all even beams in range first */
+  current_beam = sbm;
+  for (i=0; i < snd_bms_tot; i++) {
+    if ((current_beam % 2) == 0) {
+      snd_bms[iBeam] = current_beam;
+      iBeam += 1;
+    }
+    current_beam += backward ? -1:1;
+  }
+
+  /* Next find all odd beams in range */
+  current_beam = sbm;
+  for (i=0; i < snd_bms_tot; i++) {
+    if ((current_beam % 2) == 1) {
+      snd_bms[iBeam] = current_beam;
+      iBeam += 1;
+    }
+    current_beam += backward ? -1:1;
   }
 
   /* Automatically calculate the integration times */
@@ -350,7 +364,7 @@ int main(int argc,char *argv[]) {
   do {
 
     for (iBeam=0; iBeam < nBeams_per_scan; iBeam++) {
-      scan_beam_number_list[iBeam] = snd_bms[snd_bm_cnt] + odd_beams;
+      scan_beam_number_list[iBeam] = snd_bms[snd_bm_cnt];
       scan_clrfreq_fstart_list[iBeam] = snd_freqs[snd_freq_cnt];
       scan_clrfreq_bandwidth_list[iBeam] = snd_frqrng;
 
@@ -361,7 +375,6 @@ int main(int argc,char *argv[]) {
         snd_bm_cnt++;
         if (snd_bm_cnt >= snd_bms_tot) {
           snd_bm_cnt = 0;
-          odd_beams = !odd_beams;
         }
       }
     }
@@ -527,6 +540,8 @@ void usage(void)
     printf("-sfrqrng int: set the sounding FCLR search window (kHz)\n");
     printf("-nowait     : do not wait at end of scan boundary.\n");
     printf("    -nb int : number of beams per scan [16]\n");
+    printf("    -sb int : starting beam\n");
+    printf("    -eb int : ending beam\n");
     printf("-bm_sync    : set to enable beam syncing.\n");
     printf("  -bmsc int : beam syncing interval seconds.\n");
     printf("  -bmus int : beam syncing interval microseconds.\n");
