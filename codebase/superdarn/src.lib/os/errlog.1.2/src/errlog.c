@@ -37,17 +37,32 @@
 #include "tcpipmsg.h"
 #include "errlog.h"
 
-char *ErrLogStrTime() {
-  char *str;
-  time_t clock;
-  struct tm *gmt;
+char str[128];
 
-  time(&clock);
-  gmt = gmtime(&clock); 
-  str = asctime(gmt);
-  str[strlen(str)-1] = 0; /* get rid of new line */
+char *ErrLogStrTime() {
+  struct tm *gmt;
+  struct timespec err_tm;
+  int stat;
+
+  stat = clock_gettime(CLOCK_REALTIME, &err_tm);
+
+  gmt = gmtime(&err_tm.tv_sec);
+  sprintf(str,"%02d-%02d-%02d %02d:%02d:%02d.%03d",1900+gmt->tm_year,gmt->tm_mon+1,gmt->tm_mday,gmt->tm_hour,gmt->tm_min,gmt->tm_sec,(int)(err_tm.tv_nsec/1e6));
+
   return str;
 }
+
+//char *ErrLogStrTime() {
+//  char *str;
+//  time_t clock;
+//  struct tm *gmt;
+//
+//  time(&clock);
+//  gmt = gmtime(&clock); 
+//  str = asctime(gmt);
+//  str[strlen(str)-1] = 0; /* get rid of new line */
+//  return str;
+//}
 
 int ErrLog(int sock,char *name,char *buffer) {
 

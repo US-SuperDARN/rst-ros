@@ -54,17 +54,32 @@ struct OptionData opt;
 char name[256];
 int yday=0;
 
-char *get_time() {
-  char *str;
-  time_t tclock;
-  struct tm *gmt;
+char str[128];
 
-  tclock=time(NULL);
-  gmt = gmtime(&tclock);
-  str = asctime(gmt);
-  str[strlen(str)-1] = 0; /* get rid of new line */
+char *get_time(){
+  struct tm *gmt;
+  struct timespec err_tm;
+  int stat;
+
+  stat = clock_gettime(CLOCK_REALTIME, &err_tm);
+
+  gmt = gmtime(&err_tm.tv_sec);
+  sprintf(str,"%02d-%02d-%02d %02d:%02d:%02d.%03d",1900+gmt->tm_year,gmt->tm_mon+1,gmt->tm_mday,gmt->tm_hour,gmt->tm_min,gmt->tm_sec,(int)(err_tm.tv_nsec/1e6));
+
   return str;
 }
+
+//char *get_time() {
+//  char *str;
+//  time_t tclock;
+//  struct tm *gmt;
+//
+//  tclock=time(NULL);
+//  gmt = gmtime(&tclock);
+//  str = asctime(gmt);
+//  str[strlen(str)-1] = 0; /* get rid of new line */
+//  return str;
+//}
 
 FILE *open_file() {
 
