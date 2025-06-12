@@ -47,7 +47,10 @@ char *ErrLogStrTime() {
   stat = clock_gettime(CLOCK_REALTIME, &err_tm);
 
   gmt = gmtime(&err_tm.tv_sec);
-  sprintf(str,"%02d-%02d-%02d %02d:%02d:%02d.%03d",1900+gmt->tm_year,gmt->tm_mon+1,gmt->tm_mday,gmt->tm_hour,gmt->tm_min,gmt->tm_sec,(int)(err_tm.tv_nsec/1e6));
+  sprintf(str,"%02d-%02d-%02d %02d:%02d:%02d.%03d",
+          1900+gmt->tm_year,gmt->tm_mon+1,gmt->tm_mday,
+          gmt->tm_hour,gmt->tm_min,gmt->tm_sec,
+          (int)(err_tm.tv_nsec/1e6));
 
   return str;
 }
