@@ -36,7 +36,7 @@ extern char *logpath;
 
 void log_info(int flg,char *str) {
   FILE *fp;
-  char *date;
+  char date[128];
   char lpath[256];
   struct tm *gmt;
   struct timespec err_tm;
