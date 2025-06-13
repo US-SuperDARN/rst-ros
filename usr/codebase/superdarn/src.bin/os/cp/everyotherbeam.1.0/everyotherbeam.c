@@ -63,7 +63,7 @@ char *dfststr = "tst";
 char *libstr = "ros";
 void *tmpbuf;
 size_t tmpsze;
-char progid[80] = {"everyotherbeam 2025/04/29"};
+char progid[80] = {"everyotherbeam 2025/06/13"};
 char progname[256];
 int arg=0;
 struct OptionData opt;
@@ -325,6 +325,7 @@ int main(int argc,char *argv[]) {
   if (FreqTest(ftable,fixfrq) == 1) fixfrq = 0;
 
   /* Synchronize start of first scan to minute boundary */
+  ErrLog(errlog.sock,progname,"Synchronizing to scan boundary.");
   SiteEndScan(scnsc,scnus,100000);
 
   do {
