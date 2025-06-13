@@ -29,6 +29,7 @@
 #include "tcpipmsg.h"
 #include "rosmsg.h"
 #include "shmem.h"
+#include "errlog.h"
 #include "global.h"
 #include "site.h"
 #include "siteglobal.h"
@@ -329,8 +330,13 @@ int SiteRosSetupRadar() {
   int32 temp32,data_length;
   struct ROSMsg smsg,rmsg;
 
+  char logtxt[1024]="";
+
+  if (debug) ErrLog(errlog.sock,"SiteRosSetupRadar","Entering SiteRosSetupRadar");
+
   if ((ros.sock=TCPIPMsgOpen(ros.host,ros.port)) == -1) return -1;
 
+  if (debug) ErrLog(errlog.sock,"SiteRosSetupRadar","Sending SET_RADAR_CHAN");
   smsg.type = SET_RADAR_CHAN;
   TCPIPMsgSend(ros.sock, &smsg,sizeof(struct ROSMsg));
   temp32 = stid;
@@ -344,33 +350,40 @@ int SiteRosSetupRadar() {
   TCPIPMsgSend(ros.sock, &temp32, sizeof(int32));
   TCPIPMsgRecv(ros.sock, &rmsg, sizeof(struct ROSMsg));
   if (rmsg.status < 0) {
-    fprintf(stderr, "Requested radar channel unavailable\n"
-                    "Sleeping 1 second and exiting\n");
+    ErrLog(errlog.sock,"SiteRosSetupRadar","Requested radar channel unavailable. Sleeping 1 second and exiting");
     sleep(1);
     SiteRosExit(-1);
   }
   if (debug) {
-    fprintf(stderr,"SET_RADAR_CHAN:type=%c\n",rmsg.type);
-    fprintf(stderr,"SET_RADAR_CHAN:status=%d\n",rmsg.status);
+    sprintf(logtxt,"SET_RADAR_CHAN:type=%c",rmsg.type);
+    ErrLog(errlog.sock,"SiteRosSetupRadar",logtxt);
+    sprintf(logtxt,"SET_RADAR_CHAN:status=%d",rmsg.status);
+    ErrLog(errlog.sock,"SiteRosSetupRadar",logtxt);
   }
 
+  if (debug) ErrLog(errlog.sock,"SiteRosSetupRadar","Sending QUERY_INI_SETTINGS");
   smsg.type = QUERY_INI_SETTINGS;
   TCPIPMsgSend(ros.sock, &smsg,  sizeof(struct ROSMsg));
   TCPIPMsgRecv(ros.sock, &txpow, sizeof(int));
   TCPIPMsgRecv(ros.sock, &atten, sizeof(int));
   TCPIPMsgRecv(ros.sock, &rmsg,  sizeof(struct ROSMsg));
   if (debug) {
-    fprintf(stderr,"QUERY_INI_SETTINGS:type=%c\n",rmsg.type);
-    fprintf(stderr,"QUERY_INI_SETTINGS:status=%d\n",rmsg.status);
+    sprintf(logtxt,"QUERY_INI_SETTINGS:type=%c",rmsg.type);
+    ErrLog(errlog.sock,"SiteRosSetupRadar",logtxt);
+    sprintf(logtxt,"QUERY_INI_SETTINGS:status=%d",rmsg.status);
+    ErrLog(errlog.sock,"SiteRosSetupRadar",logtxt);
   }
 
+  if (debug) ErrLog(errlog.sock,"SiteRosSetupRadar","Sending GET_PARAMETERS");
   smsg.type = GET_PARAMETERS;
   TCPIPMsgSend(ros.sock, &smsg, sizeof(struct ROSMsg));
   TCPIPMsgRecv(ros.sock, &rprm, sizeof(struct ControlPRM));
   TCPIPMsgRecv(ros.sock, &rmsg, sizeof(struct ROSMsg));
   if (debug) {
-    fprintf(stderr,"GET_PARAMETERS:type=%c\n",rmsg.type);
-    fprintf(stderr,"GET_PARAMETERS:status=%d\n",rmsg.status);
+    sprintf(logtxt,"GET_PARAMETERS:type=%c",rmsg.type);
+    ErrLog(errlog.sock,"SiteRosSetupRadar",logtxt);
+    sprintf(logtxt,"GET_PARAMETERS:status=%d",rmsg.status);
+    ErrLog(errlog.sock,"SiteRosSetupRadar",logtxt);
   }
 
   sprintf(sharedmemory,"IQBuff_%s_%d_%d",station,rnum,cnum);
@@ -382,6 +395,8 @@ int SiteRosSetupRadar() {
     fprintf(stderr,"IQBuffer %s is Null\n",sharedmemory);
     SiteRosExit(-1);
   }
+
+  if (debug) ErrLog(errlog.sock,"SiteRosSetupRadar","Leaving SiteRosSetupRadar");
 
   return 0;
 }
@@ -395,6 +410,9 @@ int SiteRosStartScan(int32_t periods_per_scan, int32_t *scan_beam_list,
 
   struct ROSMsg smsg,rmsg;
 
+  if (debug) ErrLog(errlog.sock,"SiteRosStartScan","Entering SiteRosStartScan");
+
+  if (debug) ErrLog(errlog.sock,"SiteRosStartScan","Sending SET_ACTIVE");
   smsg.type = SET_ACTIVE;
   TCPIPMsgSend(ros.sock, &smsg, sizeof(struct ROSMsg));
 
@@ -418,6 +436,8 @@ int SiteRosStartScan(int32_t periods_per_scan, int32_t *scan_beam_list,
 
   TCPIPMsgRecv(ros.sock, &rmsg, sizeof(struct ROSMsg));
 
+  if (debug) ErrLog(errlog.sock,"SiteRosStartScan","Leaving SiteRosStartScan");
+
   return rmsg.status;
 }
 
@@ -428,25 +448,35 @@ int SiteRosStartIntt(int sec,int usec) {
   int total_samples=0;
   double secs;
 
+  char logtxt[1024]="";
+
+  if (debug) ErrLog(errlog.sock,"SiteRosStartIntt","Entering SiteRosStartIntt");
+
   SiteRosExit(0);
-  if (debug) fprintf(stderr,"%s SiteStartIntt: start\n",station);
 
   total_samples = tsgprm.samples + tsgprm.smdelay;
+
+  if (debug) ErrLog(errlog.sock,"SiteRosStartIntt","Sending PING");
   smsg.type = PING;
   TCPIPMsgSend(ros.sock, &smsg, sizeof(struct ROSMsg));
   TCPIPMsgRecv(ros.sock, &rmsg, sizeof(struct ROSMsg));
   if (debug) {
-    fprintf(stderr,"PING:type=%c\n",rmsg.type);
-    fprintf(stderr,"PING:status=%d\n",rmsg.status);
+    sprintf(logtxt,"PING:type=%c",rmsg.type);
+    ErrLog(errlog.sock,"SiteRosStartIntt",logtxt);
+    sprintf(logtxt,"PING:status=%d",rmsg.status);
+    ErrLog(errlog.sock,"SiteRosStartIntt",logtxt);
   }
 
+  if (debug) ErrLog(errlog.sock,"SiteRosStartIntt","Sending GET_PARAMETERS");
   smsg.type = GET_PARAMETERS;
   TCPIPMsgSend(ros.sock, &smsg, sizeof(struct ROSMsg));
   TCPIPMsgRecv(ros.sock, &rprm, sizeof(struct ControlPRM));
   TCPIPMsgRecv(ros.sock, &rmsg, sizeof(struct ROSMsg));
   if (debug) {
-    fprintf(stderr,"GET_PARAMETERS:type=%c\n",rmsg.type);
-    fprintf(stderr,"GET_PARAMETERS:status=%d\n",rmsg.status);
+    sprintf(logtxt,"GET_PARAMETERS:type=%c",rmsg.type);
+    ErrLog(errlog.sock,"SiteRosStartIntt",logtxt);
+    sprintf(logtxt,"GET_PARAMETERS:status=%d",rmsg.status);
+    ErrLog(errlog.sock,"SiteRosStartIntt",logtxt);
   }
 
   rprm.tbeam = bmnum;
@@ -460,13 +490,24 @@ int SiteRosStartIntt(int sec,int usec) {
   rprm.buffer_index        = 0;
   strncpy(rprm.name,station,10);
 
+  if (debug) ErrLog(errlog.sock,"SiteRosStartIntt","Sending SET_PARAMETERS");
   smsg.type = SET_PARAMETERS;
   TCPIPMsgSend(ros.sock,&smsg,sizeof(struct ROSMsg));
   TCPIPMsgSend(ros.sock,&rprm,sizeof(struct ControlPRM));
   TCPIPMsgRecv(ros.sock,&rmsg,sizeof(struct ROSMsg));
   if (debug) {
-    fprintf(stderr,"SET_PARAMETERS:type=%c\n",rmsg.type);
-    fprintf(stderr,"SET_PARAMETERS:status=%d\n",rmsg.status);
+    sprintf(logtxt,"SET_PARAMETERS:type=%c",rmsg.type);
+    ErrLog(errlog.sock,"SiteRosStartIntt",logtxt);
+    sprintf(logtxt,"SET_PARAMETERS:status=%d",rmsg.status);
+    ErrLog(errlog.sock,"SiteRosStartIntt",logtxt);
+    sprintf(logtxt,"SET_PARAMETERS:tbeam=%d",rprm.tbeam);
+    ErrLog(errlog.sock,"SiteRosStartIntt",logtxt);
+    sprintf(logtxt,"SET_PARAMETERS:tfreq=%d",rprm.tfreq);
+    ErrLog(errlog.sock,"SiteRosStartIntt",logtxt);
+    sprintf(logtxt,"SET_PARAMETERS:rbeam=%d",rprm.rbeam);
+    ErrLog(errlog.sock,"SiteRosStartIntt",logtxt);
+    sprintf(logtxt,"SET_PARAMETERS:rfreq=%d",rprm.rfreq);
+    ErrLog(errlog.sock,"SiteRosStartIntt",logtxt);
   }
 
   gettimeofday(&tock,NULL);
@@ -474,7 +515,7 @@ int SiteRosStartIntt(int sec,int usec) {
   tock.tv_sec  += floor(secs);
   tock.tv_usec += (secs-floor(secs))*1E6;
 
-  if (debug) fprintf(stderr,"%s SiteStartIntt: end\n",station);
+  if (debug) ErrLog(errlog.sock,"SiteRosStartIntt","Leaving SiteRosStartIntt");
 
   return 0;
 }
@@ -486,6 +527,10 @@ int SiteRosFCLR(int stfreq,int edfreq) {
   struct ROSMsg smsg,rmsg;
   struct CLRFreqPRM fprm;
 
+  char logtxt[1024]="";
+
+  if (debug) ErrLog(errlog.sock,"SiteRosFCLR","Entering SiteRosFCLR");
+
   SiteRosExit(0);
 
   fprm.start = stfreq;
@@ -493,24 +538,32 @@ int SiteRosFCLR(int stfreq,int edfreq) {
   fprm.nave  = 20;
   fprm.filter_bandwidth = 250;
 
+  if (debug) ErrLog(errlog.sock,"SiteRosFCLR","Sending REQUEST_CLEAR_FREQ_SEARCH");
   smsg.type = REQUEST_CLEAR_FREQ_SEARCH;
   TCPIPMsgSend(ros.sock, &smsg, sizeof(struct ROSMsg));
   TCPIPMsgSend(ros.sock, &fprm, sizeof(struct CLRFreqPRM));
   TCPIPMsgRecv(ros.sock, &rmsg, sizeof(struct ROSMsg));
   if (debug) {
-    fprintf(stderr,"REQUEST_CLEAR_FREQ_SEARCH:type=%c\n",rmsg.type);
-    fprintf(stderr,"REQUEST_CLEAR_FREQ_SEARCH:status=%d\n",rmsg.status);
+    sprintf(logtxt,"REQUEST_CLEAR_FREQ_SEARCH:type=%c",rmsg.type);
+    ErrLog(errlog.sock,"SiteRosFCLR",logtxt);
+    sprintf(logtxt,"REQUEST_CLEAR_FREQ_SEARCH:status=%d",rmsg.status);
+    ErrLog(errlog.sock,"SiteRosFCLR",logtxt);
   }
 
+  if (debug) ErrLog(errlog.sock,"SiteRosFCLR","Sending REQUEST_ASSIGNED_FREQ");
   smsg.type = REQUEST_ASSIGNED_FREQ;
   TCPIPMsgSend(ros.sock, &smsg, sizeof(struct ROSMsg));
   TCPIPMsgRecv(ros.sock,&tfreq, sizeof(int32));
   TCPIPMsgRecv(ros.sock,&noise, sizeof(float));
   TCPIPMsgRecv(ros.sock, &rmsg, sizeof(struct ROSMsg));
   if (debug) {
-    fprintf(stderr,"REQUEST_ASSIGNED_FREQ:type=%c\n",rmsg.type);
-    fprintf(stderr,"REQUEST_ASSIGNED_FREQ:status=%d\n",rmsg.status);
+    sprintf(logtxt,"REQUEST_ASSIGNED_FREQ:type=%c",rmsg.type);
+    ErrLog(errlog.sock,"SiteRosFCLR",logtxt);
+    sprintf(logtxt,"REQUEST_ASSIGNED_FREQ:status=%d",rmsg.status);
+    ErrLog(errlog.sock,"SiteRosFCLR",logtxt);
   }
+
+  if (debug) ErrLog(errlog.sock,"SiteRosFCLR","Leaving SiteRosFCLR");
 
   return tfreq;
 }
@@ -522,6 +575,10 @@ int SiteRosTimeSeq(int *ptab) {
   int flag,index=0;
   struct ROSMsg smsg,rmsg;
   struct SeqPRM tprm;
+
+  char logtxt[1024]="";
+
+  if (debug) ErrLog(errlog.sock,"SiteRosTimeSeq","Entering SiteRosTimeSeq");
 
   SiteRosExit(0);
 
@@ -563,6 +620,7 @@ int SiteRosTimeSeq(int *ptab) {
   tprm.samples = tsgprm.samples;
   tprm.smdelay = tsgprm.smdelay;
 
+  if (debug) ErrLog(errlog.sock,"SiteRosTimeSeq","Sending REGISTER_SEQ");
   smsg.type = REGISTER_SEQ;
   TCPIPMsgSend(ros.sock, &smsg, sizeof(struct ROSMsg));
   TCPIPMsgSend(ros.sock, &tprm, sizeof(struct SeqPRM));
@@ -570,8 +628,10 @@ int SiteRosTimeSeq(int *ptab) {
   TCPIPMsgSend(ros.sock, tsgbuf->code, sizeof(unsigned char)*tprm.len);
 
   if (debug) {
-    fprintf(stderr,"REGISTER_SEQ:intsc=%d\n",intsc);
-    fprintf(stderr,"REGISTER_SEQ:intus=%d\n",intus);
+    sprintf(logtxt,"REGISTER_SEQ:intsc=%d",intsc);
+    ErrLog(errlog.sock,"SiteRosTimeSeq",logtxt);
+    sprintf(logtxt,"REGISTER_SEQ:intus=%d",intus);
+    ErrLog(errlog.sock,"SiteRosTimeSeq",logtxt);
   }
 
   TCPIPMsgSend(ros.sock, &intsc, sizeof(int));
@@ -591,9 +651,13 @@ int SiteRosTimeSeq(int *ptab) {
 
   TCPIPMsgRecv(ros.sock, &rmsg, sizeof(struct ROSMsg));
   if (debug) {
-    fprintf(stderr,"REGISTER_SEQ:type=%c\n",rmsg.type);
-    fprintf(stderr,"REGISTER_SEQ:status=%d\n",rmsg.status);
+    sprintf(logtxt,"REGISTER_SEQ:type=%c",rmsg.type);
+    ErrLog(errlog.sock,"SiteRosTimeSeq",logtxt);
+    sprintf(logtxt,"REGISTER_SEQ:status=%d",rmsg.status);
+    ErrLog(errlog.sock,"SiteRosTimeSeq",logtxt);
   }
+
+  if (debug) ErrLog(errlog.sock,"SiteRosTimeSeq","Leaving SiteRosTimeSeq");
 
   if (rmsg.status != 0) return -2;
 
@@ -613,6 +677,8 @@ int SiteRosIntegrate(int (*lags)[2]) {
   int rngoff=2;
 
   struct ROSMsg smsg,rmsg;
+
+  char logtxt[1024]="";
 
   int iqoff=0; /* Sequence offset in bytes for current sequence relative to *
                            start of samples buffer */
@@ -635,7 +701,7 @@ int SiteRosIntegrate(int (*lags)[2]) {
   uint32 uI32,uQ32;
   uint32 *maddr, *baddr;
 
-  if (debug) fprintf(stderr,"%s SiteIntegrate: start\n",station);
+  if (debug) ErrLog(errlog.sock,"SiteRosIntegrate","Entering SiteRosIntegrate");
 
   SiteRosExit(0);
 
@@ -715,45 +781,62 @@ int SiteRosIntegrate(int (*lags)[2]) {
 
   usecs = (int)(rprm.number_of_samples/rprm.baseband_samplerate*1E6);
 
+  if (debug) ErrLog(errlog.sock,"SiteRosIntegrate","Sending SET_PARAMETERS");
   smsg.type = SET_PARAMETERS;
   TCPIPMsgSend(ros.sock,&smsg,sizeof(struct ROSMsg));
   TCPIPMsgSend(ros.sock,&rprm,sizeof(struct ControlPRM));
   TCPIPMsgRecv(ros.sock,&rmsg,sizeof(struct ROSMsg));
   if (debug) {
-    fprintf(stderr,"SET_PARAMETERS:type=%c\n",rmsg.type);
-    fprintf(stderr,"SET_PARAMETERS:status=%d\n",rmsg.status);
+    sprintf(logtxt,"SET_PARAMETERS:type=%c",rmsg.type);
+    ErrLog(errlog.sock,"SiteRosIntegrate",logtxt);
+    sprintf(logtxt,"SET_PARAMETERS:status=%d",rmsg.status);
+    ErrLog(errlog.sock,"SiteRosIntegrate",logtxt);
+    sprintf(logtxt,"SET_PARAMETERS:tbeam=%d",rprm.tbeam);
+    ErrLog(errlog.sock,"SiteRosIntegrate",logtxt);
+    sprintf(logtxt,"SET_PARAMETERS:tfreq=%d",rprm.tfreq);
+    ErrLog(errlog.sock,"SiteRosIntegrate",logtxt);
+    sprintf(logtxt,"SET_PARAMETERS:rbeam=%d",rprm.rbeam);
+    ErrLog(errlog.sock,"SiteRosIntegrate",logtxt);
+    sprintf(logtxt,"SET_PARAMETERS:rfreq=%d",rprm.rfreq);
+    ErrLog(errlog.sock,"SiteRosIntegrate",logtxt);
   }
 
+  if (debug) ErrLog(errlog.sock,"SiteRosIntegrate","Sending SET_READY_FLAG");
   smsg.type = SET_READY_FLAG;
   TCPIPMsgSend(ros.sock,&smsg,sizeof(struct ROSMsg));
   TCPIPMsgRecv(ros.sock,&rmsg,sizeof(struct ROSMsg));
   if (debug) {
-    fprintf(stderr,"SET_READY_FLAG:type=%c\n",rmsg.type);
-    fprintf(stderr,"SET_READY_FLAG:status=%d\n",rmsg.status);
+    sprintf(logtxt,"SET_READY_FLAG:type=%c",rmsg.type);
+    ErrLog(errlog.sock,"SiteRosIntegrate",logtxt);
+    sprintf(logtxt,"SET_READY_FLAG:status=%d",rmsg.status);
+    ErrLog(errlog.sock,"SiteRosIntegrate",logtxt);
   }
 
   usleep(usecs);
 
+  if (debug) ErrLog(errlog.sock,"SiteRosIntegrate","Sending GET_DATA");
   smsg.type = GET_DATA;
   if (rdata.main != NULL) free(rdata.main);
   if (rdata.back != NULL) free(rdata.back);
   rdata.main = NULL;
   rdata.back = NULL;
   TCPIPMsgSend(ros.sock,&smsg,sizeof(struct ROSMsg));
-  if (debug) fprintf(stderr,"%s GET_DATA: recv dprm\n",station);
+  if (debug) ErrLog(errlog.sock,"SiteRosIntegrate","GET_DATA: recv dprm");
 
   TCPIPMsgRecv(ros.sock,&dprm,sizeof(struct DataPRM));
   if (rdata.main) free(rdata.main);
   if (rdata.back) free(rdata.back);
-  if (debug) fprintf(stderr,"%s GET_DATA: samples %d status %d\n",
-                     station,dprm.samples,dprm.status);
+  if (debug) {
+    sprintf(logtxt,"GET_DATA: samples %d status %d",dprm.samples,dprm.status);
+    ErrLog(errlog.sock,"SiteRosIntegrate",logtxt);
+  }
 
   TCPIPMsgRecv(ros.sock,&number_of_sequences_in_integration_period, sizeof(uint32_t));
 
   if (dprm.status == 0) {
-    if (debug)
-      fprintf(stderr,"%s GET_DATA: rdata.main: uint32: %ld array: %ld\n",
-              station,sizeof(uint32),sizeof(uint32)*dprm.samples);
+    //if (debug)
+    //  fprintf(stderr,"%s GET_DATA: rdata.main: uint32: %ld array: %ld\n",
+    //          station,sizeof(uint32),sizeof(uint32)*dprm.samples);
 
     rdata.main = malloc(sizeof(uint32)*dprm.samples);
     rdata.back = malloc(sizeof(uint32)*dprm.samples);
@@ -763,19 +846,21 @@ int SiteRosIntegrate(int (*lags)[2]) {
     badtrdat.start_usec = NULL;
     badtrdat.duration_usec = NULL;
 
-    if (debug)
-      fprintf(stderr,"%s GET_DATA: trtimes length %d\n",station,badtrdat.length);
+    if (debug) {
+      sprintf(logtxt,"GET_DATA: trtimes length %d",badtrdat.length);
+      ErrLog(errlog.sock,"SiteRosIntegrate",logtxt);
+    }
 
     TCPIPMsgRecv(ros.sock, &badtrdat.length, sizeof(badtrdat.length));
-    if (debug)
-      fprintf(stderr,"%s GET_DATA: badtrdat.start_usec: uint32: %ld array: "
-              "%ld\n",station,sizeof(uint32),sizeof(uint32)*badtrdat.length);
+    //if (debug)
+    //  fprintf(stderr,"%s GET_DATA: badtrdat.start_usec: uint32: %ld array: "
+    //          "%ld\n",station,sizeof(uint32),sizeof(uint32)*badtrdat.length);
     badtrdat.start_usec    = malloc(sizeof(uint32)*badtrdat.length);
     badtrdat.duration_usec = malloc(sizeof(uint32)*badtrdat.length);
-    if (debug) fprintf(stderr,"%s GET_DATA: start_usec\n",station);
+    //if (debug) fprintf(stderr,"%s GET_DATA: start_usec\n",station);
 
     TCPIPMsgRecv(ros.sock, badtrdat.start_usec, sizeof(uint32)*badtrdat.length);
-    if (debug) fprintf(stderr,"%s GET_DATA: duration_usec\n",station);
+    //if (debug) fprintf(stderr,"%s GET_DATA: duration_usec\n",station);
 
     TCPIPMsgRecv(ros.sock, badtrdat.duration_usec, sizeof(uint32)*badtrdat.length);
     TCPIPMsgRecv(ros.sock, &num_transmitters, sizeof(int));
@@ -795,13 +880,12 @@ int SiteRosIntegrate(int (*lags)[2]) {
   TCPIPMsgRecv(ros.sock, &rprm, sizeof(struct ControlPRM));
 
   if (debug) {
-    fprintf(stderr,"%s Number of samples: dprm.samples:%d tsgprm.samples:%d "
-            "total_samples:%d\n",station,dprm.samples,tsgprm.samples,
-            total_samples);
-    fprintf(stderr,"%s nave=%d\n",station,nave);
-    fprintf(stderr,"%s dprm.status=%d\n",station,dprm.status);
-    fprintf(stderr,"%s rprm.tbeam=%d\n",station,rprm.tbeam);
-    fprintf(stderr,"%s rprm.tfreq=%d\n",station,rprm.tfreq);
+    sprintf(logtxt,"Number of samples: dprm.samples:%d tsgprm.samples:%d "
+                   "total_samples:%d",dprm.samples,tsgprm.samples,total_samples);
+    ErrLog(errlog.sock,"SiteRosIntegrate",logtxt);
+    sprintf(logtxt,"nave=%d dprm.status=%d rprm.tbeam=%d rprm.tfreq=%d",
+                   nave,dprm.status,rprm.tbeam,rprm.tfreq);
+    ErrLog(errlog.sock,"SiteRosIntegrate",logtxt);
   }
 
   /* loop for receiving data from each pulse sequence */
@@ -811,12 +895,12 @@ int SiteRosIntegrate(int (*lags)[2]) {
     TCPIPMsgRecv(ros.sock, &dprm.event_usecs, sizeof(uint32_t));
 
     /* recieve samples from main and back array */
-    if (debug)
-      fprintf(stderr,"%s GET_DATA: recv main, expecting %d samples, %ld bytes\n",
-              station,dprm.samples,(sizeof(uint32_t)*dprm.samples));
+    //if (debug)
+    //  fprintf(stderr,"%s GET_DATA: recv main, expecting %d samples, %ld bytes\n",
+    //          station,dprm.samples,(sizeof(uint32_t)*dprm.samples));
     TCPIPMsgRecv(ros.sock, rdata.main, sizeof(uint32)*dprm.samples);
-    if (debug)
-      fprintf(stderr,"%s GET_DATA: recv back\n",station);
+    //if (debug)
+    //  fprintf(stderr,"%s GET_DATA: recv back\n",station);
     TCPIPMsgRecv(ros.sock, rdata.back, sizeof(uint32)*dprm.samples);
 
     /* instead of receving a full dprm for every pulse sequence,
@@ -933,66 +1017,66 @@ int SiteRosIntegrate(int (*lags)[2]) {
       }
       /* Total of number bytes so far copied into samples array */
       iqsze += total_samples*sizeof(uint32)*2;
-      if (debug) {
-        fprintf(stderr,"%s seq %d :: ioff: %8d\n",station,nave,iqoff);
-        fprintf(stderr,"%s seq %d :: rdata.main 16bit :\n",station,nave);
-        fprintf(stderr," [  n  ] :: [  Im  ] [  Qm  ] :: [ Ii ] [ Qi ]\n");
-        nsamp = (int)dprm.samples;
-        maddr = (uint32 *)rdata.main;
-        baddr = (uint32 *)rdata.back;
-        for (n=0; n<(nsamp); n++) {
-          Q = (maddr[n] & 0xffff0000) >> 16;
-          I = maddr[n] & 0x0000ffff;
-          fprintf(stderr," %7d :: 0x%8x : %7d %7d " ,n,(uint32)maddr[n],(int)I,(int)Q);
-          Q = ((rdata.back)[n] & 0xffff0000) >> 16;
-          I = ((uint32)((rdata.back)[n])) & 0x0000ffff;
-          fprintf(stderr," :: 0x%8x : %7d %7d\n" ,(uint32)baddr[n],(int)I,(int)Q);
-        }
-        dest = (void *)(samples);
-        dest += iqoff;
-        fprintf(stderr,"%s seq %d :: rdata.back 16bit 30: %8d %8d\n",station,nave,
-                ((int16 *)rdata.back)[60],((int16 *)rdata.back)[61]);
-        dest += total_samples*sizeof(uint32);
-        fprintf(stderr,"%s seq %d :: samples    16bit 30: %8d %8d\n",station,nave,
-                ((int16 *)dest)[60],((int16 *)dest)[61]);
-        fprintf(stderr,"%s seq %d :: iqsze: %8d\n",station,nave,iqsze);
-      }
+      //if (debug) {
+      //  fprintf(stderr,"%s seq %d :: ioff: %8d\n",station,nave,iqoff);
+      //  fprintf(stderr,"%s seq %d :: rdata.main 16bit :\n",station,nave);
+      //  fprintf(stderr," [  n  ] :: [  Im  ] [  Qm  ] :: [ Ii ] [ Qi ]\n");
+      //  nsamp = (int)dprm.samples;
+      //  maddr = (uint32 *)rdata.main;
+      //  baddr = (uint32 *)rdata.back;
+      //  for (n=0; n<(nsamp); n++) {
+      //    Q = (maddr[n] & 0xffff0000) >> 16;
+      //    I = maddr[n] & 0x0000ffff;
+      //    fprintf(stderr," %7d :: 0x%8x : %7d %7d " ,n,(uint32)maddr[n],(int)I,(int)Q);
+      //    Q = ((rdata.back)[n] & 0xffff0000) >> 16;
+      //    I = ((uint32)((rdata.back)[n])) & 0x0000ffff;
+      //    fprintf(stderr," :: 0x%8x : %7d %7d\n" ,(uint32)baddr[n],(int)I,(int)Q);
+      //  }
+      //  dest = (void *)(samples);
+      //  dest += iqoff;
+      //  fprintf(stderr,"%s seq %d :: rdata.back 16bit 30: %8d %8d\n",station,nave,
+      //          ((int16 *)rdata.back)[60],((int16 *)rdata.back)[61]);
+      //  dest += total_samples*sizeof(uint32);
+      //  fprintf(stderr,"%s seq %d :: samples    16bit 30: %8d %8d\n",station,nave,
+      //          ((int16 *)dest)[60],((int16 *)dest)[61]);
+      //  fprintf(stderr,"%s seq %d :: iqsze: %8d\n",station,nave,iqsze);
+      //}
 
       /* calculate ACF */
       if (mplgexs == 0) {
         dest = (void *)(samples);
         dest += iqoff;
         rngoff = 2*rxchn;
-        if (debug) fprintf(stderr,"%s seq %d :: rngoff %d rxchn %d\n"
-                                  "%s seq %d :: ACFSumPower\n",
-                           station,nave,rngoff,rxchn,station,nave);
+        //if (debug) fprintf(stderr,"%s seq %d :: rngoff %d rxchn %d\n"
+        //                          "%s seq %d :: ACFSumPower\n",
+        //                   station,nave,rngoff,rxchn,station,nave);
         aflg = ACFSumPower(&tsgprm,mplgs,lagtable,pwr0,(int16 *)dest,
                            rngoff,skpnum!=0,roff,ioff,badrng,noise,mxpwr,
                            seqatten[nave]*atstp,thr,lmt,&abflg);
-        if (debug) fprintf(stderr,"%s seq %d :: rngoff %d rxchn %d\n"
-                                  "%s seq %d :: ACFCalculate acf\n",
-                           station,nave,rngoff,rxchn,station,nave);
+        //if (debug) fprintf(stderr,"%s seq %d :: rngoff %d rxchn %d\n"
+        //                          "%s seq %d :: ACFCalculate acf\n",
+        //                   station,nave,rngoff,rxchn,station,nave);
         ACFCalculate(&tsgprm,(int16 *)dest,rngoff,skpnum!=0,roff,ioff,mplgs,
                      lagtable,acfd,ACF_PART,2*total_samples,badrng,
                      seqatten[nave]*atstp,NULL);
         if (xcf == 1) {
-          if (debug) fprintf(stderr,"%s seq %d :: rngoff %d rxchn %d\n"
-                                    "%s seq %d :: ACFCalculate xcf\n",
-                             station,nave,rngoff,rxchn,station,nave);
+          //if (debug) fprintf(stderr,"%s seq %d :: rngoff %d rxchn %d\n"
+          //                          "%s seq %d :: ACFCalculate xcf\n",
+          //                   station,nave,rngoff,rxchn,station,nave);
           ACFCalculate(&tsgprm,(int16 *)dest,rngoff,skpnum!=0,roff,ioff,mplgs,
                        lagtable,xcfd,XCF_PART,2*total_samples,badrng,
                        seqatten[nave]*atstp,NULL);
         }
         if ((nave > 0) && (seqatten[nave] != seqatten[nave-1])) {
-          if (debug) fprintf(stderr,"%s seq %d :: rngoff %d rxchn %d\n"
-                                    "%s seq %d :: ACFNormalize\n",
-                             station,nave,rngoff,rxchn,station,nave);
+          //if (debug) fprintf(stderr,"%s seq %d :: rngoff %d rxchn %d\n"
+          //                          "%s seq %d :: ACFNormalize\n",
+          //                   station,nave,rngoff,rxchn,station,nave);
           ACFNormalize(pwr0,acfd,xcfd,tsgprm.nrang,mplgs,atstp);
         }
-        if (debug) fprintf(stderr,"%s seq %d :: rngoff %d rxchn %d\n",
-                           station,nave,rngoff,rxchn);
+        //if (debug) fprintf(stderr,"%s seq %d :: rngoff %d rxchn %d\n",
+        //                   station,nave,rngoff,rxchn);
       }
-      if (debug) fprintf(stderr,"Sending ACK for seq %d\n", nave);
+      //if (debug) fprintf(stderr,"Sending ACK for seq %d\n", nave);
 
       TCPIPMsgSend(ros.sock, &nave, sizeof(int32_t));
 
@@ -1003,8 +1087,10 @@ int SiteRosIntegrate(int (*lags)[2]) {
   /* recv GET_DATA command status */
   TCPIPMsgRecv(ros.sock, &rmsg, sizeof(struct ROSMsg));
   if (debug) {
-    fprintf(stderr,"%s GET_DATA:type=%c\n",station,rmsg.type);
-    fprintf(stderr,"%s GET_DATA:status=%d\n",station,rmsg.status);
+    sprintf(logtxt,"GET_DATA:type=%c",rmsg.type);
+    ErrLog(errlog.sock,"SiteRosIntegrate",logtxt);
+    sprintf(logtxt,"GET_DATA:status=%d",rmsg.status);
+    ErrLog(errlog.sock,"SiteRosIntegrate",logtxt);
   }
 
   /* Now divide by nave to get the average pwr0 and acfd values for the
@@ -1033,13 +1119,15 @@ int SiteRosIntegrate(int (*lags)[2]) {
   }
   free(lagtable[0]);
   free(lagtable[1]);
-  if (debug) {
-    fprintf(stderr,"%s SiteIntegrate: iqsize in bytes: %ld in 16bit samples:"
-                   "  %ld in 32bit samples: %ld\n",
-                   station,(long int)iqsze,(long int)iqsze/2,(long int)iqsze/4);
-    fprintf(stderr,"%s SiteIntegrate: end: nave: %d\n",station,nave);
-  }
+  //if (debug) {
+  //  fprintf(stderr,"%s SiteIntegrate: iqsize in bytes: %ld in 16bit samples:"
+  //                 "  %ld in 32bit samples: %ld\n",
+  //                 station,(long int)iqsze,(long int)iqsze/2,(long int)iqsze/4);
+  //  fprintf(stderr,"%s SiteIntegrate: end: nave: %d\n",station,nave);
+  //}
   SiteRosExit(0);
+
+  if (debug) ErrLog(errlog.sock,"SiteRosIntegrate","Leaving SiteRosIntegrate");
 
   return nave;
 }
@@ -1055,6 +1143,10 @@ int SiteRosEndScan(int bsc,int bus, unsigned sleepus) {
   int count=0;
   useconds_t sleep_left;
 
+  char logtxt[1024]="";
+
+  if (debug) ErrLog(errlog.sock,"SiteRosEndScan","Entering SiteRosEndScan");
+
   SiteRosExit(0);
 
   bnd = bsc + bus/USEC;
@@ -1066,9 +1158,16 @@ int SiteRosEndScan(int bsc,int bus, unsigned sleepus) {
   tock.tv_sec  = tme;
   tock.tv_usec = (tme-floor(tme))*USEC;
 
+  if (debug) ErrLog(errlog.sock,"SiteRosEndScan","Sending SET_INACTIVE");
   smsg.type = SET_INACTIVE;
   TCPIPMsgSend(ros.sock, &smsg, sizeof(struct ROSMsg));
   TCPIPMsgRecv(ros.sock, &rmsg, sizeof(struct ROSMsg));
+  if (debug) {
+    sprintf(logtxt,"SET_INACTIVE:type=%c",rmsg.type);
+    ErrLog(errlog.sock,"SiteRosEndScan",logtxt);
+    sprintf(logtxt,"SET_INACTIVE:status=%d",rmsg.status);
+    ErrLog(errlog.sock,"SiteRosEndScan",logtxt);
+  }
 
   gettimeofday(&tick,NULL);
   while (1) {
@@ -1078,12 +1177,12 @@ int SiteRosEndScan(int bsc,int bus, unsigned sleepus) {
     TCPIPMsgSend(ros.sock, &smsg, sizeof(struct ROSMsg));
     TCPIPMsgRecv(ros.sock, &rmsg, sizeof(struct ROSMsg));
 
-    if (debug) {
-      fprintf(stderr,"PING:type=%c\n",rmsg.type);
-      fprintf(stderr,"PING:status=%d\n",rmsg.status);
-      fprintf(stderr,"PING:count=%d\n",count);
-      fflush(stderr);
-    }
+    //if (debug) {
+    //  fprintf(stderr,"PING:type=%c\n",rmsg.type);
+    //  fprintf(stderr,"PING:status=%d\n",rmsg.status);
+    //  fprintf(stderr,"PING:count=%d\n",count);
+    //  fflush(stderr);
+    //}
     count++;
     SiteRosExit(0);
     sleep_left = (tock.tv_sec-tick.tv_sec)*USEC + (tock.tv_usec-tick.tv_usec) - 2000;
@@ -1096,6 +1195,8 @@ int SiteRosEndScan(int bsc,int bus, unsigned sleepus) {
     SiteRosExit(0);
     gettimeofday(&tick,NULL);
   }
+
+  if (debug) ErrLog(errlog.sock,"SiteRosEndScan","Leaving SiteRosEndScan");
 
   return 0;
 }

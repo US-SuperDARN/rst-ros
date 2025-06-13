@@ -36,22 +36,26 @@ extern char *logpath;
 
 void log_info(int flg,char *str) {
   FILE *fp;
-  char *date;
+  char date[128];
   char lpath[256];
-  time_t ltime;
-  struct tm *time_of_day;
+  struct tm *gmt;
+  struct timespec err_tm;
+  int stat;
 
-  time(&ltime);
-  time_of_day=gmtime(&ltime);
+  stat = clock_gettime(CLOCK_REALTIME, &err_tm);
 
-  date=asctime(time_of_day);
-  date[strlen(date)-1]=0;
+  gmt = gmtime(&err_tm.tv_sec);
+  sprintf(date,"%02d-%02d-%02d %02d:%02d:%02d.%03d",
+          1900+gmt->tm_year,gmt->tm_mon+1,gmt->tm_mday,
+          gmt->tm_hour,gmt->tm_min,gmt->tm_sec,
+          (int)(err_tm.tv_nsec/1e6));
+
   if (flg==0) fprintf(stderr,"%s : %d : %s\n",date,getpid(),str);
   else fprintf(stderr,"%s\n",str);
 
-  sprintf(lpath,"%s%.4d%.2d%.2d.%s",logpath,1900+
-          time_of_day->tm_year,time_of_day->tm_mon+1,
-          time_of_day->tm_mday,logname);
+  sprintf(lpath,"%s%.4d%.2d%.2d.%s",logpath,
+          1900+gmt->tm_year,gmt->tm_mon+1,
+          gmt->tm_mday,logname);
   fp=fopen(lpath,"a");
   if (fp !=NULL) {
     if (flg==0) fprintf(fp,"%s : %d : %s\n",date,getpid(),str);
