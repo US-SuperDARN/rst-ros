@@ -881,7 +881,7 @@ int SiteRosIntegrate(int (*lags)[2]) {
 
   if (debug) {
     sprintf(logtxt,"Number of samples: dprm.samples:%d tsgprm.samples:%d "
-                   "total_samples:%d",dprm.samples.tsgprm.samples,total_samples);
+                   "total_samples:%d",dprm.samples,tsgprm.samples,total_samples);
     ErrLog(errlog.sock,"SiteRosIntegrate",logtxt);
     sprintf(logtxt,"nave=%d dprm.status=%d rprm.tbeam=%d rprm.tfreq=%d",
                    nave,dprm.status,rprm.tbeam,rprm.tfreq);
