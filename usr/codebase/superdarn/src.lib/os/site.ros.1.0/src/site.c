@@ -481,6 +481,8 @@ int SiteRosStartIntt(int sec,int usec) {
 
   rprm.tbeam = bmnum;
   rprm.tfreq = 12000;
+  rprm.rbeam = bmnum;
+  rprm.rfreq = 12000;
   rprm.trise = 5000;
   rprm.baseband_samplerate = ((double)nbaud/(double)txpl)*1E6;
   rprm.filter_bandwidth    = rprm.baseband_samplerate;
@@ -769,6 +771,7 @@ int SiteRosIntegrate(int (*lags)[2]) {
 
   rprm.tbeam = bmnum;
   rprm.tfreq = tfreq;
+  rprm.rbeam = bmnum;
   rprm.rfreq = tfreq;
   rprm.trise = 5000;
   rprm.baseband_samplerate = ((double)nbaud/(double)txpl)*1E6;
