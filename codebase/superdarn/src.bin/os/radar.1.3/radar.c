@@ -76,6 +76,9 @@ int operate(pid_t parent,int sock) {
   int stid,tfreq,dfreq,rnum,cnum,s,i;
   float noise=0.5;
 
+  int txpow=20;
+  int atten=0;
+
   int32 temp_int32,data_length;
   char ststr[10];
   char entry_name[80];
@@ -137,15 +140,8 @@ int operate(pid_t parent,int sock) {
 
       case QUERY_INI_SETTINGS:
         if (vb) fprintf(stderr,"QUERY_INI_SETTINGS\n");
-        TCPIPMsgRecv(sock, &data_length, sizeof(int32));
-        TCPIPMsgRecv(sock, &entry_name, data_length*sizeof(char));
-        TCPIPMsgRecv(sock, &entry_type, sizeof(char));
-        return_type='b';
-        TCPIPMsgSend(sock, &return_type, sizeof(char));
-        data_length=1;
-        TCPIPMsgSend(sock, &data_length, sizeof(int32));
-        temp_int32=0;
-        TCPIPMsgSend(sock, &temp_int32, data_length*sizeof(int32));
+        TCPIPMsgSend(sock, &txpow, sizeof(int));
+        TCPIPMsgSend(sock, &atten, sizeof(int));
         break;
 
       case GET_PARAMETERS:
