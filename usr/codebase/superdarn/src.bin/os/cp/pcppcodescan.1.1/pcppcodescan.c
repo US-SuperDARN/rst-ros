@@ -74,7 +74,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"pcppcodescan 2025/04/29"};
+char progid[80]={"pcppcodescan 2025/06/13"};
 char progname[256];
 
 int arg=0;
@@ -342,6 +342,7 @@ int main(int argc,char *argv[]) {
   }
 
   /* Synchronize start of first scan to minute boundary */
+  ErrLog(errlog.sock,progname,"Synchronizing to scan boundary.");
   SiteEndScan(scnsc,scnus,100000);
 
   do {
