@@ -702,7 +702,7 @@ int SiteRosIntegrate(int (*lags)[2]) {
   /* phase code declarations */
   int n,nsamp, *code, Iout, Qout;
   uint32 uI32,uQ32;
-  uint32 *maddr, *baddr;
+  //uint32 *maddr, *baddr;
 
   if (debug) ErrLog(errlog.sock,"SiteRosIntegrate","Entering SiteRosIntegrate");
 
