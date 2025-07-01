@@ -392,7 +392,8 @@ int SiteRosSetupRadar() {
     ShMemAlloc(sharedmemory,iqbufsize,O_RDWR | O_CREAT,1,&shmemfd);
 
   if (samples == NULL) {
-    fprintf(stderr,"IQBuffer %s is Null\n",sharedmemory);
+    sprintf(logtxt,"IQBuffer %s is Null",sharedmemory);
+    ErrLog(errlog.sock,"SiteRosSetupRadar",logtxt);
     SiteRosExit(-1);
   }
 
@@ -713,12 +714,12 @@ int SiteRosIntegrate(int (*lags)[2]) {
   if (mplgexs == 0) {
     lagtable[0] = malloc(sizeof(int)*(mplgs+1));
     if (lagtable[0] == NULL) {
-      fprintf(stderr,"Lagtable-0 is Null\n");
+      ErrLog(errlog.sock,"SiteRosIntegrate","Lagtable-0 is Null");
       SiteRosExit(-1);
     }
     lagtable[1] = malloc(sizeof(int)*(mplgs+1));
     if (lagtable[1] == NULL) {
-      fprintf(stderr,"Lagtable-1 is Null\n");
+      ErrLog(errlog.sock,"SiteRosIntegrate","Lagtable-1 is Null");
       SiteRosExit(-1);
     }
     for (i=0; i<=mplgs; i++) {
@@ -728,12 +729,12 @@ int SiteRosIntegrate(int (*lags)[2]) {
   } else {
     lagtable[0] = malloc(sizeof(int)*(mplgexs+1));
     if (lagtable[0] == NULL) {
-      fprintf(stderr,"Lagtable-0 is Null\n");
+      ErrLog(errlog.sock,"SiteRosIntegrate","Lagtable-0 is Null");
       SiteRosExit(-1);
     }
     lagtable[1] = malloc(sizeof(int)*(mplgexs+1));
     if (lagtable[1] == NULL) {
-      fprintf(stderr,"Lagtable-1 is Null\n");
+      ErrLog(errlog.sock,"SiteRosIntegrate","Lagtable-1 is Null");
       SiteRosExit(-1);
     }
 
@@ -802,6 +803,11 @@ int SiteRosIntegrate(int (*lags)[2]) {
     ErrLog(errlog.sock,"SiteRosIntegrate",logtxt);
     sprintf(logtxt,"SET_PARAMETERS:rfreq=%d",rprm.rfreq);
     ErrLog(errlog.sock,"SiteRosIntegrate",logtxt);
+  }
+  if (rmsg.status < 0) {
+    ErrLog(errlog.sock,"SiteRosIntegrate","SET_PARAMETERS failed. Sleeping 1 second and exiting");
+    sleep(1);
+    SiteRosExit(-1);
   }
 
   if (debug) ErrLog(errlog.sock,"SiteRosIntegrate","Sending SET_READY_FLAG");
