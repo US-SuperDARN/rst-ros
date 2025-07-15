@@ -119,7 +119,7 @@ int main (int argc,char *argv[]) {
   while (IQFread(fp,prm,iq,&badtr,&samples) !=-1) {
 
     if (vb==1) {
-      fprintf(stderr,"%d-%d-%d %d:%d:%d beam=%d nave=%d\n",prm->time.yr,prm->time.mo,
+      fprintf(stderr,"%04d-%02d-%02d  %02d:%02d:%02d  beam=%02d  nave=%d\n",prm->time.yr,prm->time.mo,
               prm->time.dy,prm->time.hr,prm->time.mt,prm->time.sc,prm->bmnum,prm->nave);
     }
 
