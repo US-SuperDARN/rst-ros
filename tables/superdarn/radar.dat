@@ -81,3 +81,4 @@
 210  1 20230124 25000101 "Iceland West"            "Dartmouth College"                   "hdw.dat.icw" "icw"
 211  1 20230124 25000101 "Iceland East"            "Dartmouth College"                   "hdw.dat.ice" "ice"
 512  0 20110101 25000101 "EKB Radar"               "Russian Academy of Sciences"         "hdw.dat.ekb" "ekb"
+999  1 20240101 25000101 "Lab Radar"               "US SuperDARN"                        "hdw.dat.lab" "lab"

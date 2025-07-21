@@ -1,0 +1,10 @@
+# Restricted frequency table for Christmas Valley Radars; -40 db bw=60 kHz
+default=11110   # Ray suggested 10800-11200; should check noise in this range
+0000 9000       # no transmissions below 9 MHz
+9935 10210      # 10 MHz time signal
+11215 11460     # Air Emergency band
+13200 13470     # Second Air Emergency Band and Radio Astronomy Band
+13940 14410     # Amatuer Radar and Satellite Band
+14640 14700     # Canadian Time Signal at 14670
+14930 15070     # US Time Signals
+17840 99999     # no transmissions above 17840
