@@ -72,7 +72,7 @@ char *dfststr="tst";
 char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
-char progid[80]={"rbspscan 2025/06/13"};
+char progid[80]={"rbspscan 2025/07/22"};
 char progname[256];
 int arg=0;
 struct OptionData opt;
@@ -495,7 +495,7 @@ int main(int argc,char *argv[]) {
     }
 
     TimeReadClock(&yr,&mo,&dy,&hr,&mt,&sc,&us);
-    if (OpsReOpen(2,0,0) !=0) {
+    if (OpsReOpen(1,59,59) !=0) {
       ErrLog(errlog.sock,progname,"Opening new files.");
       for (n=0;n<tnum;n++) {
         RMsgSndClose(task[n].sock);
