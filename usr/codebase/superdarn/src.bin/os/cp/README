@@ -7,6 +7,7 @@ one another for dual-channel operation:
 - rbspscan
 - onebeamscan
 - normalsound_usrp [+]
+- noopscan         [-]
 
 [*] Note that normalscan and pcodescan are not compatible with
     one another; however, both control programs are compatible
@@ -15,3 +16,6 @@ one another for dual-channel operation:
 [+] normalsound_usrp may require a 10 MHz receive bandwidth in
     the python UHD server depending on the minimum and maximum
     frequencies in the radar's sounder.dat file.
+
+[-] noopscan is used to turn off a channel for a specified
+    period of time, and does not produce any data.

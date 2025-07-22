@@ -5,6 +5,7 @@ J.D.Spaleta  (original developer)
 J.T.Klein    (UAF radar engineer)
 M.Guski      (UAF radar engineer)
 B.G.Klug     (UAF radar engineer)
+W.A.Bristow  (UAF/PSU radar PI)
 S.G.Shepherd (CVE/CVW radar PI)
 SuperDARN Data Analysis Working Group (RST developers)
 E.G.Thomas   (merged ROS back into RST)
@@ -156,12 +157,17 @@ The format for the starting time is:  yr mo dy hr mn
 The first non-comment line of the schedule file should name the default
 control program to be run when no valid time has been reached, e.g.,
 
-    default normalscan -stid -cve -c 1 -fast -sb 0 -eb 19
+    default normalscan -stid cve -c 1 -fast -sb 0 -eb 19
 
 All subsequent lines should contain a valid time followed by a control
 program and its command line options, e.g.,
 
-    2022 10 01 12 00 normalscan [command-line options]
+    2022 10 01 12 00 normalscan -stid cve -c 1 [command-line options]
+
+To turn off a channel for a specified period of time, the noopscan control
+program can be added to the schedule file, e.g.,
+
+    2022 10 01 12 00 noopscan -stid cve -c 2
 
 Note that unlike previous versions of the ROS, it is no longer necessary
 to specifiy the path where the control programs are located (this path
@@ -171,17 +177,25 @@ is now set by default to the USR_BINPATH environment variable).
 Running the Radar
 -----------------
 
-Two scripts control the operation of the radar:
+Several scripts control the operation of the radar(s):
 
-start.radar   - starts the supporting tasks and scheduler process
-stop.radar    - stops all radar tasks
+start.radar   - starts the supporting tasks and scheduler process on
+                both the local and remote radar computers
+start.remote  - starts the supporting tasks and scheduler process on
+                the remote radar computer (called by start.radar)
+stop.radar    - stops all radar tasks on both the local and remote
+                radar computers
+stop.remote   - stops all radar tasks on the remote radar computer
+                (called by stop.radar)
 
 A script is also available for testing the operation of the radar:
 
 test.radar    - tests the operation of the radar
 
 Make sure the correct three-letter station ID code is assigned to the
-"radar" variable in the start and test scripts.
+"radar" variable in the start and test scripts. For a single radar site,
+make sure to comment out the "ssh" lines in the start.radar and stop.radar
+scripts.
 
 
 Monitoring the Data
