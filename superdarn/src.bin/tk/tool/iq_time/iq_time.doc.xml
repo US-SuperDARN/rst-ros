@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<binary>
+<project>superdarn</project>
+<name>iq_time</name>
+<location>src.bin/tk/tool/iq_time</location>
+<syntax>iq_time --help</syntax>
+<syntax>iq_time [<ar>iqdatname</ar>]</syntax>
+
+<option><on>--help</on><od>print the help message and exit.</od>
+</option>
+<option><on>--version</on><od>print the RST version number and exit.</od>
+</option>
+<option><on>-vb</on><od>verbose. Log information to the console.</od>
+</option>
+<option><on><ar>iqdatname</ar></on><od>filename of the <code>iqdat</code> format file to read. If this is omitted, the file will be read from standard input</od>
+</option>
+
+<synopsis><p>Extracts timing and frequency information from a <code>iqdat</code> format file.</p></synopsis>
+
+<description><p>Extracts timing and frequency information from a <code>iqdat</code> format file.</p>
+<p>The extracted section will be written to standard output</code></description>
+
+<example>
+<command>iq_time 19990410.gbr.iqdat &gt; 1999041022.gbr.iqdat.txt</command>
+
+<description>Extract timing and frequency information from the <code>iqdat</code> file "<code>19990410.gbr.iqdat</code>" to produce the plain-text file "<code>1999041022.gbr.iqdat.txt</code>".</description>
+</example>
+
+</binary>
