@@ -1,5 +1,5 @@
 /* site.c
-   ====== 
+   ======
    Author R.J.Barnes
 */
 
