@@ -109,6 +109,10 @@ int SiteIntegrate(int (*lags)[2]) {
   return (sitelib.integrate)(lags);
 }
 
+int SiteWideIntegrate(int (*lags)[2],float *pwr0_arr,float *acfd_arr,float *xcfd_arr) {
+  return (sitelib.wideintegrate)(lags,pwr0_arr,acfd_arr,xcfd_arr);
+}
+
 int SiteEndScan(int bsc,int bus, unsigned sleepus) {
   return (sitelib.endscan)(bsc,bus, sleepus);
 }

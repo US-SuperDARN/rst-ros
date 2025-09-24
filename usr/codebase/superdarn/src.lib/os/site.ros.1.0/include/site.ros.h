@@ -18,6 +18,7 @@ int SiteRosStartIntt(int intsc,int intus);
 int SiteRosFCLR(int stfreq,int edfreq);
 int SiteRosTimeSeq(int *ptab);
 int SiteRosIntegrate(int (*lags)[2]);
+int SiteRosWideIntegrate(int (*lags)[2], float *pwr0_arr, float *acfd_arr, float *xcfd_arr);
 int SiteRosEndScan(int bsc,int bus, unsigned sleepus);
 void SiteRosExit(int signum);
 

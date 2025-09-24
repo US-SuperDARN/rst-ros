@@ -58,6 +58,7 @@ char *sitefn[]={"Site%sStart",
                 "Site%sFCLR",
                 "Site%sTimeSeq",
                 "Site%sIntegrate",
+                "Site%sWideIntegrate",
                 "Site%sEndScan",
                 "Site%sExit",
                 0};
@@ -69,6 +70,7 @@ void **siteptr[]={ (void **) &sitelib.start,
                    (void **) &sitelib.fclr,
                    (void **) &sitelib.tmseq,
                    (void **) &sitelib.integrate,
+                   (void **) &sitelib.wideintegrate,
                    (void **) &sitelib.endscan,
                    (void **) &sitelib.exit};
 
