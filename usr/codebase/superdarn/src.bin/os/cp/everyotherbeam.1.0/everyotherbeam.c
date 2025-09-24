@@ -295,7 +295,7 @@ int main(int argc,char *argv[]) {
   status = SiteSetupRadar();
 
   fprintf(stderr,"Status: %d\n",status);
-  
+
   if (status !=0) {
     ErrLog(errlog.sock,progname,"Error locating hardware.");
     exit(1);

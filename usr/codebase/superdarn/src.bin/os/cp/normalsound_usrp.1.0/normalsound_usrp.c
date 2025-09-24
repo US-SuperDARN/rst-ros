@@ -296,7 +296,7 @@ int main(int argc,char *argv[]) {
   /* Configure phasecoded operation if nbaud > 1 */
   pcode=(int *)malloc((size_t)sizeof(int)*seq->mppul*nbaud);
   OpsBuildPcode(nbaud,seq->mppul,pcode);
-  
+
   txpl=(nbaud*rsep*20)/3;
 
   /* Attempt to adjust mpinc to be a multiple of 10 and a multiple of txpl */

@@ -237,7 +237,7 @@ int main(int argc,char *argv[]) {
 
   printf("Station ID: %s  %d\n",ststr,stid);
   strncpy(combf,progid,80);
- 
+
   if ((errlog.sock=TCPIPMsgOpen(errlog.host,errlog.port))==-1)
     fprintf(stderr,"Error connecting to error log.\n");
 

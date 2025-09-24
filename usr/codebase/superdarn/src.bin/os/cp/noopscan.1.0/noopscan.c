@@ -68,7 +68,7 @@ int rst_opterr(char *txt) {
 int main(int argc,char *argv[]) {
 
   int nowait=0;
- 
+
   int scnsc=0;      /* total scan period in seconds */
   int scnus=0;
 

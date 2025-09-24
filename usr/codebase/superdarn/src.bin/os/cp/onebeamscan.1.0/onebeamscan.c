@@ -67,7 +67,7 @@ int arg=0;
 struct OptionData opt;
 
 char *roshost=NULL;
-int tnum=4;      
+int tnum=4;
 
 void usage(void);
 
@@ -82,7 +82,7 @@ int main(int argc,char *argv[]) {
   char logtxt[1024];
 
   int nowait=0;
- 
+
   int scnsc=120;      /* total scan period in seconds */
   int scnus=0;
   int cnt=0;
@@ -146,9 +146,9 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt, "nf",     'i', &nfrq);
   OptionAdd(&opt, "xcf",    'x', &xcnt);
   OptionAdd(&opt, "ep",     'i', &errlog.port);
-  OptionAdd(&opt, "sp",     'i', &shell.port); 
-  OptionAdd(&opt, "bp",     'i', &baseport); 
-  OptionAdd(&opt, "stid",   't', &ststr); 
+  OptionAdd(&opt, "sp",     'i', &shell.port);
+  OptionAdd(&opt, "bp",     'i', &baseport);
+  OptionAdd(&opt, "stid",   't', &ststr);
   OptionAdd(&opt, "fast",   'x', &fast);
   OptionAdd(&opt, "nowait", 'x', &nowait);
   OptionAdd(&opt, "clrscan",'x', &clrscan);
@@ -217,18 +217,18 @@ int main(int argc,char *argv[]) {
   }
 
   /* reprocess the commandline since some things are reset by SiteStart */
-  arg = OptionProcess(1, argc, argv, &opt, NULL);  
+  arg = OptionProcess(1, argc, argv, &opt, NULL);
 
   if (fast) sprintf(progname,"onebeamscan (fast)");
   else sprintf(progname,"onebeamscan");
 
   printf("Station ID: %s  %d\n", ststr, stid);
-  strncpy(combf, progid, 80);   
- 
-  if ((errlog.sock = TCPIPMsgOpen(errlog.host,errlog.port))==-1) {    
+  strncpy(combf, progid, 80);
+
+  if ((errlog.sock = TCPIPMsgOpen(errlog.host,errlog.port))==-1) {
     fprintf(stderr,"Error connecting to error log.\n");
   }
-  if ((shell.sock = TCPIPMsgOpen(shell.host,shell.port))==-1) {    
+  if ((shell.sock = TCPIPMsgOpen(shell.host,shell.port))==-1) {
     fprintf(stderr,"Error connecting to shell.\n");
   }
 
@@ -236,11 +236,11 @@ int main(int argc,char *argv[]) {
 
   OpsSetupCommand(argc, argv);
   OpsSetupShell();
-   
+
   RadarShellParse(&rstable,"sbm l ebm l dfrq l nfrq l"
                            " frqrng l xcnt l",
                            &sbm,&ebm, &dfrq,&nfrq,
-                           &frqrng,&xcnt);      
+                           &frqrng,&xcnt);
 
   if (fast) {
     scnsc = 60;
@@ -307,7 +307,7 @@ int main(int argc,char *argv[]) {
   }
 
   OpsSetupIQBuf(intsc,intus,mppul,mpinc,nbaud);
- 
+
   status = SiteSetupRadar();
   if (status != 0) {
     ErrLog(errlog.sock,progname,"Error locating hardware.");
@@ -323,17 +323,17 @@ int main(int argc,char *argv[]) {
 
   if (discretion) cp = -cp;
 
-  OpsLogStart(errlog.sock,progname,argc,argv);  
+  OpsLogStart(errlog.sock,progname,argc,argv);
   OpsSetupTask(tnum,task,errlog.sock,progname);
 
   for (n=0; n<tnum; n++) {
     RMsgSndReset(task[n].sock);
-    RMsgSndOpen(task[n].sock,strlen((char *)command),command);     
+    RMsgSndOpen(task[n].sock,strlen((char *)command),command);
   }
 
   printf("Preparing OpsFitACFStart Station ID: %s  %d\n",ststr,stid);
   OpsFitACFStart();
-  
+
   printf("Preparing SiteTimeSeq Station ID: %s  %d\n",ststr,stid);
   tsgid = SiteTimeSeq(seq->ptab);
 
@@ -365,13 +365,13 @@ int main(int argc,char *argv[]) {
       sleep(1);
       continue;
     }
-    
+
     TimeReadClock(&yr,&mo,&dy,&hr,&mt,&sc,&us);
     if (OpsReOpen(1,59,59) !=0) {
       ErrLog(errlog.sock,progname,"Opening new files.");
       for (n=0;n<tnum;n++) {
         RMsgSndClose(task[n].sock);
-        RMsgSndOpen(task[n].sock,strlen( (char *)command),command);     
+        RMsgSndOpen(task[n].sock,strlen( (char *)command),command);
       }
     }
 
@@ -393,7 +393,7 @@ int main(int argc,char *argv[]) {
       bmnum = scan_beam_number_list[iBeam];
 
       TimeReadClock(&yr,&mo,&dy,&hr,&mt,&sc,&us);
-      
+
       stfrq = scan_clrfreq_fstart_list[iBeam];
       if (fixfrq > 0) {
         stfrq=fixfrq;
@@ -425,11 +425,11 @@ int main(int argc,char *argv[]) {
       }
       sprintf(logtxt,"Transmitting on: %d (Noise=%g)",tfreq,noise);
       ErrLog(errlog.sock,progname,logtxt);
-    
-      nave = SiteIntegrate(seq->lags);   
+
+      nave = SiteIntegrate(seq->lags);
       if (nave < 0) {
         sprintf(logtxt,"Integration error: %d",nave);
-        ErrLog(errlog.sock,progname,logtxt); 
+        ErrLog(errlog.sock,progname,logtxt);
         continue;
       }
       sprintf(logtxt,"Number of sequences: %d",nave);
@@ -446,31 +446,31 @@ int main(int argc,char *argv[]) {
       msg.tsize=0;
 
       tmpbuf=RadarParmFlatten(prm,&tmpsze);
-      RMsgSndAdd(&msg,tmpsze,tmpbuf, PRM_TYPE,0); 
+      RMsgSndAdd(&msg,tmpsze,tmpbuf, PRM_TYPE,0);
 
       tmpbuf=IQFlatten(iq,prm->nave,&tmpsze);
       RMsgSndAdd(&msg,tmpsze,tmpbuf,IQ_TYPE,0);
 
       RMsgSndAdd(&msg,sizeof(unsigned int)*2*iq->tbadtr,
                  (unsigned char *) badtr,BADTR_TYPE,0);
-     
+
       RMsgSndAdd(&msg,strlen(sharedmemory)+1,(unsigned char *)sharedmemory,
                   IQS_TYPE,0);
 
       tmpbuf=RawFlatten(raw,prm->nrang,prm->mplgs,&tmpsze);
-      RMsgSndAdd(&msg,tmpsze,tmpbuf,RAW_TYPE,0); 
- 
-      tmpbuf=FitFlatten(fit,prm->nrang,&tmpsze);
-      RMsgSndAdd(&msg,tmpsze,tmpbuf,FIT_TYPE,0); 
+      RMsgSndAdd(&msg,tmpsze,tmpbuf,RAW_TYPE,0);
 
-      for (n=0;n<tnum;n++) RMsgSndSend(task[n].sock,&msg); 
+      tmpbuf=FitFlatten(fit,prm->nrang,&tmpsze);
+      RMsgSndAdd(&msg,tmpsze,tmpbuf,FIT_TYPE,0);
+
+      for (n=0;n<tnum;n++) RMsgSndSend(task[n].sock,&msg);
 
       for (n=0;n<msg.num;n++) {
         if (msg.data[n].type==PRM_TYPE) free(msg.ptr[n]);
         if (msg.data[n].type==IQ_TYPE) free(msg.ptr[n]);
         if (msg.data[n].type==RAW_TYPE) free(msg.ptr[n]);
-        if (msg.data[n].type==FIT_TYPE) free(msg.ptr[n]); 
-      }          
+        if (msg.data[n].type==FIT_TYPE) free(msg.ptr[n]);
+      }
 
       RadarShell(shell.sock,&rstable);
 
@@ -481,19 +481,19 @@ int main(int argc,char *argv[]) {
 
     } while (1);
 
-    ErrLog(errlog.sock,progname,"Waiting for scan boundary."); 
+    ErrLog(errlog.sock,progname,"Waiting for scan boundary.");
     if (nowait==0) SiteEndScan(scnsc,scnus,50000);
   } while (1);
-  
+
   for (n=0;n<tnum;n++) RMsgSndClose(task[n].sock);
 
   ErrLog(errlog.sock,progname,"Ending program.");
 
   SiteExit(0);
 
-  return 0;   
-} 
- 
+  return 0;
+}
+
 void usage(void)
 {
   printf("\nonebeamscan [command-line options]\n\n");

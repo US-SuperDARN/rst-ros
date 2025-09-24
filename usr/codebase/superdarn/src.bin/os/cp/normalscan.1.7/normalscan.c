@@ -91,7 +91,7 @@ int main(int argc,char *argv[]) {
   char logtxt[1024];
 
   int nowait=0;
- 
+
   int scnsc=0;      /* total scan period in seconds */
   int scnus=0;
   int cnt=0;
@@ -471,7 +471,7 @@ int main(int argc,char *argv[]) {
 
       tmpbuf = RawFlatten(raw,prm->nrang,prm->mplgs,&tmpsze);
       RMsgSndAdd(&msg,tmpsze,tmpbuf,RAW_TYPE,0);
- 
+
       tmpbuf=FitFlatten(fit,prm->nrang,&tmpsze);
       RMsgSndAdd(&msg,tmpsze,tmpbuf,FIT_TYPE,0);
 

@@ -188,7 +188,7 @@ int main(int argc,char *argv[]) {
   }
 
   /* number of integration periods possible in scan time */
-  /* modified to allow no buffer at end of scan. change bufsc to 3s for 
+  /* modified to allow no buffer at end of scan. change bufsc to 3s for
      standard 3s delay at end of scan */
   nintgs = (int)floor( (scnsc+scnus*1e-6 - (bufsc+bufus*1e-6))/
                         (intsc + intus*1e-6) );
@@ -360,7 +360,7 @@ int main(int argc,char *argv[]) {
   }
 
   OpsFitACFStart();
-  
+
   tsgid=SiteTimeSeq(seq->ptab);      /* get the timing sequence */
 
   if (FreqTest(ftable,fixfrq) == 1) fixfrq = 0;

@@ -318,7 +318,7 @@ int main(int argc,char *argv[])
   intsc = def_intt_sc;
   intus = def_intt_us;
 
-  /* Configure phasecoded operation if nbaud > 1 */ 
+  /* Configure phasecoded operation if nbaud > 1 */
   pcode=(int *)malloc((size_t)sizeof(int)*seq->mppul*nbaud);
   OpsBuildPcode(nbaud,seq->mppul,pcode);
 

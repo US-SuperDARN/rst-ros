@@ -58,7 +58,7 @@ declaration.
 #include "sitebuild.h"
 #include "siteglobal.h"
 
-/* #define PCPBEAM 9 
+/* #define PCPBEAM 9
 Not possible to set two different beams for dual sites.
 */
 
@@ -190,7 +190,7 @@ int main(int argc,char *argv[]) {
     OptionVersion(stdout);
     exit(0);
   }
- 
+
   if (ststr==NULL) ststr=dfststr;
 
   channel = cnum;
@@ -573,5 +573,5 @@ int main(int argc,char *argv[]) {
   SiteExit(0);
 
   return 0;
-} 
+}
 

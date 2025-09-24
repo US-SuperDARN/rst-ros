@@ -5,11 +5,11 @@
 
 /*
  LICENSE AND DISCLAIMER
- 
+
  Copyright (c) 2012 The Johns Hopkins University/Applied Physics Laboratory
- 
+
  This file is part of the Radar Software Toolkit (RST).
- 
+
  RST is free software: you can redistribute it and/or modify
  it under the terms of the GNU Lesser General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
@@ -19,12 +19,12 @@
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU Lesser General Public License for more details.
- 
+
  You should have received a copy of the GNU Lesser General Public License
  along with RST.  If not, see <http://www.gnu.org/licenses/>.
- 
- 
-  
+
+
+
 */
 /* Includes provided by the OS environment */
 #include <stdlib.h>
@@ -34,7 +34,7 @@
 #include <zlib.h>
 #include <math.h>
 
-/* Includes provided by the RST */ 
+/* Includes provided by the RST */
 #include "rtypes.h"
 #include "option.h"
 #include "rtime.h"
@@ -62,7 +62,7 @@
 #include "siteglobal.h"
 
 /* sorry, included for checking sanity checking pcode sequences with --test (JTK)*/
-#include "tsg.h" 
+#include "tsg.h"
 #include "maketsg.h"
 
 int arg=0;
@@ -356,7 +356,7 @@ int main(int argc,char *argv[]) {
     }
   }
 
-  /* THEMISSCAN  */ 
+  /* THEMISSCAN  */
   else if (strcmp(beampattern, "themis") == 0) {
      fprintf(stderr, "Initializing themis beam pattern...\n");
      scnsc  = 120;
@@ -392,7 +392,7 @@ int main(int argc,char *argv[]) {
        0,  -1,  -1,  -1,  -1,  -1,  -1,  -1 };
 
      int *beampattern2take;
-     if (backward) 
+     if (backward)
         beampattern2take = backward_beams;
      else
         beampattern2take = forward_beams;
@@ -409,13 +409,13 @@ int main(int argc,char *argv[]) {
   /* RPSP Scan */
   else if (strcmp(beampattern, "rbsp") == 0) {
   /* Code is copied from:
-        rbspscan.c   Author: Kevin Sterne  
-        This code uses the 'Option 2' beam progression in which the west, meridional, and east beams are skipped in the regular field 
+        rbspscan.c   Author: Kevin Sterne
+        This code uses the 'Option 2' beam progression in which the west, meridional, and east beams are skipped in the regular field
         of view scan.  As a bit of a trick, the beam progression goes for a forward radar:
                 westbm, fovbm, meribm, eastbm, fovbm, fovbm, westbm, fovbm, meribm, eastbm, fovbm, fovbm, westbm, ...
         It was noticed that this kind of pattern still allows for 5 repetitions of the mini-scan beams for the traditional 16 beams radars.
-        This code also does not synchronize the start of the beam sounding to an integer time interval.  
-       
+        This code also does not synchronize the start of the beam sounding to an integer time interval.
+
         This code is largely based off of the themisscan.c RCP.  The credits for this go to:  Author: J.Spaleta  With Modifications by M. McClorey
   */
 
@@ -482,7 +482,7 @@ int main(int argc,char *argv[]) {
                      bbms[i] = westbm;
              } else if (tempF<=ebm) {
 
-                     /* Here is where mini-scan beams are skipped in the FoV scan.  The logic works out that if a 
+                     /* Here is where mini-scan beams are skipped in the FoV scan.  The logic works out that if a
                       start or end beam is in the mini-scan, then it must be treated differently.  -KTS 10Oct2012 */
 
 
@@ -514,7 +514,7 @@ int main(int argc,char *argv[]) {
      }
 
      int *beampattern2take;
-     if (backward) 
+     if (backward)
         beampattern2take = bbms;
      else
         beampattern2take = fbms;
@@ -530,7 +530,7 @@ int main(int argc,char *argv[]) {
    }
 
 
-  /* Print out details of beams */ 
+  /* Print out details of beams */
   fprintf(stderr, "Sequence details: \n");
   for (iBeam =0; iBeam < nBeams_per_scan; iBeam++) {
     fprintf(stderr, "  sequence %2d: beam: %2d, \n",iBeam, scan_beam_number_list[iBeam] );
@@ -578,7 +578,7 @@ int main(int argc,char *argv[]) {
       }
   }
 
-  /* Configure phasecoded operation if nbaud > 1 */ 
+  /* Configure phasecoded operation if nbaud > 1 */
   pcode=(int *)malloc((size_t)sizeof(int)*seq->mppul*nbaud);
   OpsBuildPcode(nbaud,seq->mppul,pcode);
 
@@ -660,7 +660,7 @@ int main(int argc,char *argv[]) {
       tsgprm.pat  = malloc(sizeof(int)*mppul);
       tsgprm.code = seq->ptab;
 
-      for (i=0;i<tsgprm.mppul;i++) 
+      for (i=0;i<tsgprm.mppul;i++)
         tsgprm.pat[i]=seq->ptab[i];
 
       tsgbuf=TSGMake(&tsgprm,&flag);
@@ -773,7 +773,7 @@ int main(int argc,char *argv[]) {
           }
       }  */
 
-      /* TODO: JDS: You can not make any day night changes that impact TR gate timing at dual site locations. Care must be taken with day night operation*/ 
+      /* TODO: JDS: You can not make any day night changes that impact TR gate timing at dual site locations. Care must be taken with day night operation*/
       stfrq = scan_clrfreq_fstart_list[iBeam];
       if (fixfrq>0) {
         stfrq=fixfrq;
