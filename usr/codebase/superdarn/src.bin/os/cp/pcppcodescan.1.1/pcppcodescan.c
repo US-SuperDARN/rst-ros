@@ -74,7 +74,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"pcppcodescan 2025/07/22"};
+char progid[80]={"pcppcodescan 2025/09/30"};
 char progname[256];
 
 int arg=0;
@@ -143,6 +143,7 @@ int main(int argc,char *argv[]) {
 
   OptionAdd(&opt,"di",'x',&discretion);
 
+  OptionAdd(&opt,"wide",'x',&wide_tx);
   OptionAdd(&opt,"frang",'i',&frang);
   OptionAdd(&opt,"rsep",'i',&rsep);
 

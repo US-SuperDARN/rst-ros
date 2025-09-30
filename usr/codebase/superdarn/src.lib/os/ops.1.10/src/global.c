@@ -144,6 +144,8 @@ int nfrang=180;
 int stfrq=12300;
 int frqrng=300;
 
+int wide_tx=0;
+
 
 /* raw I&Q sample buffer */
 

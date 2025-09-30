@@ -60,7 +60,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"onebeamscan 2025/07/22"};
+char progid[80]={"onebeamscan 2025/09/30"};
 char progname[256];
 
 int arg=0;
@@ -137,6 +137,7 @@ int main(int argc,char *argv[]) {
   /* ========= PROCESS COMMAND LINE ARGUMENTS ============= */
 
   OptionAdd(&opt, "di",     'x', &discretion);
+  OptionAdd(&opt, "wide",   'x', &wide_tx);
   OptionAdd(&opt, "frang",  'i', &frang);
   OptionAdd(&opt, "rsep",   'i', &rsep);
   OptionAdd(&opt, "nrang",  'i', &nrang);
@@ -500,6 +501,7 @@ void usage(void)
   printf("command-line options:\n");
   printf("  -stid char: radar string (required)\n");
   printf("    -di     : indicates running during discretionary time\n");
+  printf("   -wide    : use a wide transmission beam\n");
   printf("  -fast     : 1-min scan (2-min default)\n");
   printf(" -frang int : delay to first range (km) [180]\n");
   printf("  -rsep int : range separation (km) [45]\n");
