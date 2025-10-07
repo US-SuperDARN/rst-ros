@@ -123,13 +123,17 @@ int main (int argc,char *argv[]) {
               prm->time.dy,prm->time.hr,prm->time.mt,prm->time.sc,prm->bmnum,prm->nave);
     }
 
-
     sprintf(str,"%04d-%02d-%02d  %02d:%02d:%02d.%06d",
             prm->time.yr,prm->time.mo,prm->time.dy,
             prm->time.hr,prm->time.mt,prm->time.sc,
             prm->time.us);
 
-    fprintf(stdout,"%s  %d  %02d  %05d  %02d",str,prm->scan,prm->bmnum,prm->tfreq,iq->seqnum);
+    /* Identify wide TX beam data with negative beam number */
+    if (prm->bmazm == 0) {
+      fprintf(stdout,"%s  %d -%02d  %05d  %02d",str,prm->scan,prm->bmnum,prm->tfreq,iq->seqnum);
+    } else {
+      fprintf(stdout,"%s  %d  %02d  %05d  %02d",str,prm->scan,prm->bmnum,prm->tfreq,iq->seqnum);
+    }
 
     for (n=0; n < iq->seqnum; n++) {
       tval = iq->tval[n].tv_sec + (1.0*iq->tval[n].tv_nsec)/1.0e9;
