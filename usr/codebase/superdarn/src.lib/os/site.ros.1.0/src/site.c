@@ -1160,13 +1160,6 @@ int SiteRosEndScan(int bsc,int bus, unsigned sleepus) {
 
   bnd = bsc + bus/USEC;
 
-  if (gettimeofday(&tock,NULL)==-1) return -1;
-
-  tme = tock.tv_sec + tock.tv_usec/USEC;
-  tme = bnd*floor(1.0+tme/bnd);
-  tock.tv_sec  = tme;
-  tock.tv_usec = (tme-floor(tme))*USEC;
-
   if (debug) ErrLog(errlog.sock,"SiteRosEndScan","Sending SET_INACTIVE");
   smsg.type = SET_INACTIVE;
   TCPIPMsgSend(ros.sock, &smsg, sizeof(struct ROSMsg));
@@ -1178,13 +1171,24 @@ int SiteRosEndScan(int bsc,int bus, unsigned sleepus) {
     ErrLog(errlog.sock,"SiteRosEndScan",logtxt);
   }
 
+  if (gettimeofday(&tock,NULL)==-1) return -1;
+
+  tme = tock.tv_sec + tock.tv_usec/USEC;
+  tme = bnd*floor(1.0+tme/bnd);
+  tock.tv_sec  = tme;
+  tock.tv_usec = (tme-floor(tme))*USEC;
+
   gettimeofday(&tick,NULL);
+  smsg.type = PING;
   while (1) {
     if (tick.tv_sec > tock.tv_sec) break;
     if ((tick.tv_sec == tock.tv_sec) && (tick.tv_usec >= (tock.tv_usec-2000))) break;
-    smsg.type = PING;
-    TCPIPMsgSend(ros.sock, &smsg, sizeof(struct ROSMsg));
-    TCPIPMsgRecv(ros.sock, &rmsg, sizeof(struct ROSMsg));
+
+    if (count >= 100) {
+      TCPIPMsgSend(ros.sock, &smsg, sizeof(struct ROSMsg));
+      TCPIPMsgRecv(ros.sock, &rmsg, sizeof(struct ROSMsg));
+      count = 0;
+    }
 
     //if (debug) {
     //  fprintf(stderr,"PING:type=%c\n",rmsg.type);
@@ -1194,6 +1198,7 @@ int SiteRosEndScan(int bsc,int bus, unsigned sleepus) {
     //}
     count++;
     SiteRosExit(0);
+
     sleep_left = (tock.tv_sec-tick.tv_sec)*USEC + (tock.tv_usec-tick.tv_usec) - 2000;
     if (sleep_left < sleepus) {
       usleep(sleep_left);
@@ -1201,6 +1206,7 @@ int SiteRosEndScan(int bsc,int bus, unsigned sleepus) {
     } else {
       usleep(sleepus);
     }
+
     SiteRosExit(0);
     gettimeofday(&tick,NULL);
   }

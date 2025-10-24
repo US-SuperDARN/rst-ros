@@ -63,7 +63,7 @@ char *dfststr = "tst";
 char *libstr = "ros";
 void *tmpbuf;
 size_t tmpsze;
-char progid[80] = {"everyotherbeam 2025/07/22"};
+char progid[80] = {"everyotherbeam 2025/10/24"};
 char progname[256];
 int arg=0;
 struct OptionData opt;
@@ -326,7 +326,7 @@ int main(int argc,char *argv[]) {
 
   /* Synchronize start of first scan to minute boundary */
   ErrLog(errlog.sock,progname,"Synchronizing to scan boundary.");
-  SiteEndScan(scnsc,scnus,100000);
+  SiteEndScan(scnsc,scnus,5000);
 
   do {
 
@@ -463,7 +463,7 @@ int main(int argc,char *argv[]) {
     } while (1);
 
     ErrLog(errlog.sock,progname,"Waiting for scan boundary.");
-    if (nowait == 0) SiteEndScan(scnsc,scnus,50000);
+    if (nowait == 0) SiteEndScan(scnsc,scnus,5000);
   } while (1);
 
   for (n=0; n<tnum; n++) RMsgSndClose(task[n].sock);
