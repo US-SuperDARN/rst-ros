@@ -747,7 +747,6 @@ int SiteRosIntegrate(int (*lags)[2]) {
   }
 
   total_samples = tsgprm.samples + tsgprm.smdelay;
-  smpnum = total_samples;
   skpnum = tsgprm.smdelay;  /* skpnum != 0  returns 1, which is used as the  *
                                             dflg argument in ACFCalculate to *
                                             enable smdelay usage in offset   *
@@ -839,6 +838,7 @@ int SiteRosIntegrate(int (*lags)[2]) {
     sprintf(logtxt,"GET_DATA: samples %d status %d",dprm.samples,dprm.status);
     ErrLog(errlog.sock,"SiteRosIntegrate",logtxt);
   }
+  smpnum = dprm.samples;
 
   TCPIPMsgRecv(ros.sock,&number_of_sequences_in_integration_period, sizeof(uint32_t));
 
@@ -986,8 +986,8 @@ int SiteRosIntegrate(int (*lags)[2]) {
        */
 
       /* copy samples here */
-      seqoff[nave] = iqsze/2;           /* Sequence offset in 16bit units */
-      seqsze[nave] = total_samples*2*2; /* Sequence length in 16bit units */
+      seqoff[nave] = iqsze/2;          /* Sequence offset in 16bit units */
+      seqsze[nave] = dprm.samples*2*2; /* Sequence length in 16bit units */
 
       seqtval[nave].tv_sec  = dprm.event_secs;
       seqtval[nave].tv_nsec = dprm.event_usecs*1000;
@@ -1010,22 +1010,22 @@ int SiteRosIntegrate(int (*lags)[2]) {
       /* samples is natively an int16 pointer */
       /* rdata.main is natively an uint32 pointer */
       /* rdata.back is natively an uint32 pointer */
-      /* total_samples*8 represents number of bytes for main and back samples */
+      /* dprm.samples*8 represents number of bytes for main and back samples */
 
       dest = (void *)(samples);  /* look iqoff bytes into samples area */
       dest += iqoff;
-      if ((iqoff+total_samples*2*sizeof(uint32)) < iqbufsize) {
-        memmove(dest,rdata.main,total_samples*sizeof(uint32));
+      if ((iqoff+dprm.samples*2*sizeof(uint32)) < iqbufsize) {
+        memmove(dest, rdata.main, dprm.samples*sizeof(uint32));
         /* skip ahead number of samples * 32 bit per sample to account for
            rdata.main */
-        dest += total_samples*sizeof(uint32);
-        memmove(dest,rdata.back,total_samples*sizeof(uint32));
+        dest += dprm.samples*sizeof(uint32);
+        memmove(dest, rdata.back, dprm.samples*sizeof(uint32));
       } else {
         fprintf(stderr,"IQ Buffer overrun in SiteIntegrate\n");
         fflush(stderr);
       }
       /* Total of number bytes so far copied into samples array */
-      iqsze += total_samples*sizeof(uint32)*2;
+      iqsze += dprm.samples*sizeof(uint32)*2;
       //if (debug) {
       //  fprintf(stderr,"%s seq %d :: ioff: %8d\n",station,nave,iqoff);
       //  fprintf(stderr,"%s seq %d :: rdata.main 16bit :\n",station,nave);
@@ -1045,7 +1045,7 @@ int SiteRosIntegrate(int (*lags)[2]) {
       //  dest += iqoff;
       //  fprintf(stderr,"%s seq %d :: rdata.back 16bit 30: %8d %8d\n",station,nave,
       //          ((int16 *)rdata.back)[60],((int16 *)rdata.back)[61]);
-      //  dest += total_samples*sizeof(uint32);
+      //  dest += dprm.samples*sizeof(uint32);
       //  fprintf(stderr,"%s seq %d :: samples    16bit 30: %8d %8d\n",station,nave,
       //          ((int16 *)dest)[60],((int16 *)dest)[61]);
       //  fprintf(stderr,"%s seq %d :: iqsze: %8d\n",station,nave,iqsze);
@@ -1066,14 +1066,14 @@ int SiteRosIntegrate(int (*lags)[2]) {
         //                          "%s seq %d :: ACFCalculate acf\n",
         //                   station,nave,rngoff,rxchn,station,nave);
         ACFCalculate(&tsgprm,(int16 *)dest,rngoff,skpnum!=0,roff,ioff,mplgs,
-                     lagtable,acfd,ACF_PART,2*total_samples,badrng,
+                     lagtable,acfd,ACF_PART,2*dprm.samples,badrng,
                      seqatten[nave]*atstp,NULL);
         if (xcf == 1) {
           //if (debug) fprintf(stderr,"%s seq %d :: rngoff %d rxchn %d\n"
           //                          "%s seq %d :: ACFCalculate xcf\n",
           //                   station,nave,rngoff,rxchn,station,nave);
           ACFCalculate(&tsgprm,(int16 *)dest,rngoff,skpnum!=0,roff,ioff,mplgs,
-                       lagtable,xcfd,XCF_PART,2*total_samples,badrng,
+                       lagtable,xcfd,XCF_PART,2*dprm.samples,badrng,
                        seqatten[nave]*atstp,NULL);
         }
         if ((nave > 0) && (seqatten[nave] != seqatten[nave-1])) {
