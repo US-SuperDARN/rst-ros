@@ -476,12 +476,7 @@ int main(int argc,char *argv[]) {
     exit(-1);
   }
 
-  if (IQFread(fp,prm,iq,&badtr,&samples)==-1) {
-    fprintf(stderr,"Error reading file.\n");
-    exit(-1);
-  }
-
-  if (delay == 0){
+  if (delay == 0) {
       fprintf(stderr, "Click to view next plot. Ctrl+c to exit. Use -delay option to cycle through all frames sequentially.\n");
   }
 
@@ -569,10 +564,6 @@ int main(int argc,char *argv[]) {
 
     if (status == -1) {
       fprintf(stderr,"File does not contain the requested interval.\n");
-      exit(-1);
-    }
-    if (IQFread(fp,prm,iq,&badtr,&samples)==-1) {
-      fprintf(stderr,"Error reading file.\n");
       exit(-1);
     }
   } else stime=atime;
