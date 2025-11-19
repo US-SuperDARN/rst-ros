@@ -54,7 +54,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"pcodescan 2025/10/24"};
+char progid[80]={"pcodescan 2025/11/19"};
 char progname[256];
 
 int arg=0;
@@ -219,7 +219,7 @@ int main(int argc,char *argv[]) {
   }
 
   /* non-standard nrang and rsep for this mode */
-  nrang = 300;
+  nrang = 225;
   rsep  = 15;
 
   /* reprocess the commandline since some things are reset by SiteStart */
@@ -527,7 +527,7 @@ void usage(void)
   printf("   -tau int : lag spacing (usecs) [1500]\n");
   printf(" -frang int : delay to first range (km) [180]\n");
   printf("  -rsep int : range separation (km) [15]\n");
-  printf(" -nrang int : number of range gates [300]\n");
+  printf(" -nrang int : number of range gates [225]\n");
   printf("    -dt int : hour when day freq. is used\n");
   printf("    -nt int : hour when night freq. is used\n");
   printf("    -df int : daytime frequency (kHz)\n");
