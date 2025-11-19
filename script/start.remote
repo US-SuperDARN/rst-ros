@@ -31,8 +31,6 @@ echo "Waiting for rtserver to start"
 rtserver -rp 41104 -ep 41000 -tp 1024 &
 rtserver -rp 42104 -ep 42000 -tp 1025 &
 
-/home/radar_user/repos/SuperDARN_UHD_Server/tools/optimize_network.sh
-
 sleep 5
 
 echo "Starting scheduler"
