@@ -53,7 +53,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"tauscan_11 2025/10/24"};
+char progid[80]={"tauscan_11 2025/11/23"};
 char progname[256];
 
 int arg=0;
@@ -117,6 +117,7 @@ int main(int argc,char *argv[]) {
   /* ========= PROCESS COMMAND LINE ARGUMENTS ============= */
 
   OptionAdd(&opt, "di",     'x', &discretion);
+  OptionAdd(&opt, "wide",   'x', &wide_tx);
   OptionAdd(&opt, "frang",  'i', &frang);
   OptionAdd(&opt, "rsep",   'i', &rsep);
   OptionAdd(&opt, "dt",     'i', &day);

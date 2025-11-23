@@ -54,7 +54,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"pcodescan 2025/11/19"};
+char progid[80]={"pcodescan 2025/11/23"};
 char progname[256];
 
 int arg=0;
@@ -128,6 +128,7 @@ int main(int argc,char *argv[]) {
   /* ========= PROCESS COMMAND LINE ARGUMENTS ============= */
 
   OptionAdd(&opt, "di",     'x', &discretion);
+  OptionAdd(&opt, "wide",   'x', &wide_tx);
   OptionAdd(&opt, "frang",  'i', &frang);
   OptionAdd(&opt, "rsep",   'i', &rsep);
   OptionAdd(&opt, "nrang",  'i', &nrang);
@@ -522,6 +523,7 @@ void usage(void)
   printf("command-line options:\n");
   printf("  -stid char: radar string (required)\n");
   printf("    -di     : indicates running during discretionary time\n");
+  printf("  -wide     : use a wide transmission beam\n");
   printf("  -fast     : 1-min scan (2-min default)\n");
   printf("  -baud int : baud to use for Barker phase coded sequence (1,2,3,4,5,7,11,13) [3]\n");
   printf("   -tau int : lag spacing (usecs) [1500]\n");
