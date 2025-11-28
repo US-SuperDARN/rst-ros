@@ -848,6 +848,10 @@ int SiteRosIntegrate(int (*lags)[2]) {
 
   TCPIPMsgRecv(ros.sock,&number_of_sequences_in_integration_period, sizeof(uint32_t));
 
+  num_transmitters = 0;
+  agcstat = 0;
+  lopwrstat = 0;
+
   if (dprm.status == 0) {
     //if (debug)
     //  fprintf(stderr,"%s GET_DATA: rdata.main: uint32: %ld array: %ld\n",
@@ -890,6 +894,13 @@ int SiteRosIntegrate(int (*lags)[2]) {
     TCPIPMsgRecv(ros.sock, &mt, sizeof(int));
     TCPIPMsgRecv(ros.sock, &sc, sizeof(int));
     TCPIPMsgRecv(ros.sock, &us, sizeof(int));
+  }
+
+  for (i=0; i<num_transmitters; i++) {
+    agcstat = agcstat | (txstatus.AGC[i] << i);
+    if (i > 15) {
+      lopwrstat = lopwrstat | (txstatus.LOWPWR[i] << i-16);
+    }
   }
 
   TCPIPMsgRecv(ros.sock, &rprm, sizeof(struct ControlPRM));
