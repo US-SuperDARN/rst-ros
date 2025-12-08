@@ -55,7 +55,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"normalsound_usrp 2025/11/23"};
+char progid[80]={"normalsound_usrp 2025/12/08"};
 char progname[256];
 
 int arg=0;
@@ -443,11 +443,11 @@ int main(int argc,char *argv[]) {
       if ((elapsed_secs >= clrskip) || (startup==1)) {
           startup = 0;
           ErrLog(errlog.sock,progname,"Doing clear frequency search.");
-          sprintf(logtxt, "FRQ: %d %d", stfrq, frqrng);
+          sprintf(logtxt, "FRQ: %d %d", stfrq, snd_frqrng);
           ErrLog(errlog.sock,progname, logtxt);
 
           if (fixfrq<=0) {
-            tfreq=SiteFCLR(stfrq,stfrq+frqrng);
+            tfreq=SiteFCLR(stfrq,stfrq+snd_frqrng);
           }
           t0.tv_sec  = t1.tv_sec;
           t0.tv_usec = t1.tv_usec;
