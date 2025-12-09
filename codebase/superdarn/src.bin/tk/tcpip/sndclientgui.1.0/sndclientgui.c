@@ -32,6 +32,7 @@ Modifications:
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+#include <math.h>
 #include <time.h>
 #include <unistd.h>
 #include <zlib.h>
@@ -40,6 +41,7 @@ Modifications:
 #include "rtypes.h"
 #include "option.h"
 #include "dmap.h"
+#include "radar.h"
 #include "rtime.h"
 #include "rprm.h"
 #include "fitdata.h"
@@ -115,8 +117,9 @@ void init_plot(struct PlotOptions *plot);
 int check_key(int c, struct PlotOptions *plot);
 void read_fit_data(struct RadarParm *prm, struct FitData *fit, struct FitBuffer *fbuf, struct PlotOptions *plot);
 void read_snd_data(struct RadarParm *prm, struct FitData *fit, struct SndBuffer *sbuf, struct PlotOptions *plot);
-void print_radar_param(struct RadarParm *prm, struct FitData *fit);
+void print_radar_param(struct RadarParm *prm, struct FitData *fit, struct RadarNetwork *network);
 void draw_menu(struct PlotOptions *plot);
+void draw_ant_status(struct RadarParm *prm, struct PlotOptions *plot);
 void draw_snd_data(struct RadarParm *prm, struct SndBuffer *sbuf, struct PlotOptions *plot);
 void draw_fit_data(struct RadarParm *prm, struct FitBuffer *fbuf, struct PlotOptions *plot);
 void draw_colorbar(struct PlotOptions *plot);
@@ -145,6 +148,11 @@ int main(int argc,char *argv[]) {
   struct RadarParm *prm;
   struct FitData *fit;
 
+  struct RadarNetwork *network;
+
+  char *envstr=NULL;
+  FILE *fp;
+
   int c=0;
   int ret=0;
 
@@ -153,6 +161,34 @@ int main(int argc,char *argv[]) {
 
   prm=RadarParmMake();
   fit=FitMake();
+
+  envstr=getenv("SD_RADAR");
+  if (envstr==NULL) {
+    fprintf(stderr,"Environment variable 'SD_RADAR' must be defined.\n");
+    exit(-1);
+  }
+
+  fp=fopen(envstr,"r");
+
+  if (fp==NULL) {
+    fprintf(stderr,"Could not locate radar information file.\n");
+    exit(-1);
+  }
+
+  network=RadarLoad(fp);
+  fclose(fp);
+  if (network==NULL) {
+    fprintf(stderr,"Failed to read radar information.\n");
+    exit(-1);
+  }
+
+  envstr=getenv("SD_HDWPATH");
+  if (envstr==NULL) {
+    fprintf(stderr,"Environment variable 'SD_HDWPATH' must be defined.\n");
+    exit(-1);
+  }
+
+  RadarLoadHardware(envstr,network);
 
   init_plot(&plot);
 
@@ -209,7 +245,7 @@ int main(int argc,char *argv[]) {
   strcpy(host,argv[argc-2]);
   remote_port=atoi(argv[argc-1]);
 
-  sock=ConnexOpen(host,remote_port,NULL); 
+  sock=ConnexOpen(host,remote_port,NULL);
 
   if (sock<0) {
     fprintf(stderr,"Could not connect to host.\n");
@@ -300,10 +336,13 @@ int main(int argc,char *argv[]) {
       }
 
       /* Print date/time and radar operating parameters */
-      print_radar_param(prm,fit);
+      print_radar_param(prm,fit,network);
 
       /* Draw a menu explaining the keyboard controls */
       draw_menu(&plot);
+
+      /* Draw antenna status information */
+      draw_ant_status(prm,&plot);
 
       /* Draw fit or SND data vs range gate */
       if (plot.sndflg) draw_snd_data(prm,&sbuf,&plot);
@@ -559,13 +598,15 @@ void read_snd_data(struct RadarParm *prm, struct FitData *fit,
 
 
 /* Print date/time and radar operating parameters */
-void print_radar_param(struct RadarParm *prm, struct FitData *fit) {
+void print_radar_param(struct RadarParm *prm, struct FitData *fit, struct RadarNetwork *network) {
 
   move(0, 0);
   clrtoeol();
-  printw("%04d-%02d-%02d %02d:%02d:%02d\n",
+  printw("%04d-%02d-%02d %02d:%02d:%02d  %s (%s)\n",
          prm->time.yr,prm->time.mo,prm->time.dy,
-         prm->time.hr,prm->time.mt,prm->time.sc);
+         prm->time.hr,prm->time.mt,prm->time.sc,
+         RadarGetName(network,prm->stid),
+         RadarGetCode(network,prm->stid,0));
   clrtoeol();
   printw("stid  = %3d  cpid  = %d  channel = %d\n", prm->stid,prm->cp,prm->channel);
   clrtoeol();
@@ -667,14 +708,54 @@ void draw_menu(struct PlotOptions *plot) {
 }
 
 
+void draw_ant_status(struct RadarParm *prm, struct PlotOptions *plot) {
+
+  int i,val;
+  int antenna[20];
+
+  /* Read antenna status */
+  for (i=0; i<16; i++) {
+    antenna[i] = (prm->stat.agc >> i) & 1;
+  }
+  for (i=0; i<4; i++) {
+    antenna[i+16] = (prm->stat.lopwr >> i) & 1;
+  }
+
+  /* Draw antenna status labels */
+  move(12, 3);
+  for (i=0; i<20; i++) {
+    printw("%3d",i);
+  }
+  printw("\n");
+
+  printw("Ant");
+  for (i=0; i<20; i++) {
+    printw(" ");
+    if (plot->colorflg) {
+      if (antenna[i]) val = 9;
+      else            val = 12;
+      attron(COLOR_PAIR(val));
+      printw("  ");
+      attroff(COLOR_PAIR(val));
+    } else {
+      if (antenna[i]) printw("XX");
+      else            printw("  ");
+    }
+  }
+}
+
+
 /* Draw fit data versus range gate and beam */
 void draw_fit_data(struct RadarParm *prm, struct FitBuffer *fbuf, struct PlotOptions *plot) {
 
   int i,j;
   int val=0;
 
+  move(14, 0);
+  clrtoeol();
+
   /* Draw range gate labels */
-  move(12, 0);
+  move(15, 0);
   if (plot->rngflg) {
     printw("B\\R %d",prm->frang);
     for (i=1; i*10<plot->nrng; i++) {
@@ -691,7 +772,7 @@ void draw_fit_data(struct RadarParm *prm, struct FitBuffer *fbuf, struct PlotOpt
 
   /* Draw each range gate for each beam */
   for (j=0; j<MAX_BEAMS; j++) {
-    move(j+13, 0);
+    move(j+16, 0);
     clrtoeol();
 
     if (fbuf->beam[j] == 0) continue;
@@ -742,7 +823,7 @@ void draw_snd_data(struct RadarParm *prm, struct SndBuffer *sbuf, struct PlotOpt
   int val=0;
 
   /* Draw range gate labels */
-  move(12, 0);
+  move(15, 0);
   if (plot->rngflg) {
     printw("F\\R %d",prm->frang);
     for (i=1; i*10<plot->nrng; i++) {
@@ -759,7 +840,7 @@ void draw_snd_data(struct RadarParm *prm, struct SndBuffer *sbuf, struct PlotOpt
 
   /* Draw range gate for each frequency */
   for (j=0; j<SND_FREQS; j++) {
-    move(j+13, 0);
+    move(j+16, 0);
     clrtoeol();
 
     if ((j==plot->f) && (prm->bmnum==plot->b) && (plot->snd || plot->force) && plot->colorflg) attron(COLOR_PAIR(6));
@@ -798,22 +879,23 @@ void draw_snd_data(struct RadarParm *prm, struct SndBuffer *sbuf, struct PlotOpt
 
   /* Clear higher beams if necessary */
   if (plot->max_beam >= SND_FREQS) {
-    move(SND_FREQS+13, 0);
+    move(SND_FREQS+16, 0);
     clrtoeol();
-    move(SND_FREQS+14, 0);
+    move(SND_FREQS+17, 0);
     clrtoeol();
   }
 
-  for (j=0; j<SND_FREQS; j++) {
-    if (sbuf->time[plot->b][j] > ftime) {
-      ftime = sbuf->time[plot->b][j];
+  if (!plot->force) {
+    for (j=0; j<SND_FREQS; j++) {
+      if (sbuf->time[plot->b][j] > ftime) {
+        ftime = sbuf->time[plot->b][j];
+      }
     }
+    TimeEpochToYMDHMS(ftime,&yr,&mo,&dy,&hr,&mt,&sc);
+    move(14, 0);
+    printw("SND Beam: %02d   SND Time:", plot->b);
+    if (ftime > 0) printw(" %04d-%02d-%02d %02d:%02d:%02d", yr,mo,dy,hr,mt,(int)sc);
   }
-  TimeEpochToYMDHMS(ftime,&yr,&mo,&dy,&hr,&mt,&sc);
-  move(11, 0);
-  printw("SND Beam: %02d   SND Time:", plot->b);
-  if (ftime > 0) printw(" %04d-%02d-%02d %02d:%02d:%02d", yr,mo,dy,hr,mt,(int)sc);
-
 }
 
 
@@ -821,10 +903,10 @@ void draw_snd_data(struct RadarParm *prm, struct SndBuffer *sbuf, struct PlotOpt
 void draw_colorbar(struct PlotOptions *plot) {
 
   int i,j;
-  int start=12;
+  int start=15;
   int rng=plot->nrng;
 
-  move(11, rng+4);
+  move(14, rng+4);
   if (plot->pwrflg)      printw("Pow [dB]");
   else if (plot->velflg) printw("Vel [m/s]");
   else if (plot->widflg) printw("Wid [m/s]");
@@ -845,12 +927,12 @@ void draw_colorbar(struct PlotOptions *plot) {
 
   if (plot->velflg && plot->gflg) {
     attron(COLOR_PAIR(14));
-    move(25, rng+5);
+    move(28, rng+5);
     printw(" ");
     attroff(COLOR_PAIR(14));
     printw(" GS");
   } else {
-    move(25, rng+5);
+    move(28, rng+5);
     clrtoeol();
   }
 }

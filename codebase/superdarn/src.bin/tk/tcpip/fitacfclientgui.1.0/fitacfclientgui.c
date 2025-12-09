@@ -32,6 +32,7 @@ Modifications:
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+#include <math.h>
 #include <time.h>
 #include <unistd.h>
 #include <zlib.h>
@@ -40,6 +41,7 @@ Modifications:
 #include "rtypes.h"
 #include "option.h"
 #include "dmap.h"
+#include "radar.h"
 #include "rprm.h"
 #include "fitdata.h"
 #include "connex.h"
@@ -104,6 +106,8 @@ int main(int argc,char *argv[]) {
   double emin=0;
   double emax=40;
 
+  int antenna[20];
+
   int sock;
   int remote_port=0;
   char host[256];
@@ -111,10 +115,43 @@ int main(int argc,char *argv[]) {
   struct RadarParm *prm;
   struct FitData *fit;
 
+  struct RadarNetwork *network;
+
+  char *envstr=NULL;
+  FILE *fp;
+
   int c=0;
 
   prm=RadarParmMake();
   fit=FitMake();
+
+  envstr=getenv("SD_RADAR");
+  if (envstr==NULL) {
+    fprintf(stderr,"Environment variable 'SD_RADAR' must be defined.\n");
+    exit(-1);
+  }
+
+  fp=fopen(envstr,"r");
+
+  if (fp==NULL) {
+    fprintf(stderr,"Could not locate radar information file.\n");
+    exit(-1);
+  }
+
+  network=RadarLoad(fp);
+  fclose(fp);
+  if (network==NULL) {
+    fprintf(stderr,"Failed to read radar information.\n");
+    exit(-1);
+  }
+
+  envstr=getenv("SD_HDWPATH");
+  if (envstr==NULL) {
+    fprintf(stderr,"Environment variable 'SD_HDWPATH' must be defined.\n");
+    exit(-1);
+  }
+
+  RadarLoadHardware(envstr,network);
 
   OptionAdd(&opt,"-help",'x',&help);
   OptionAdd(&opt,"-option",'x',&option);
@@ -166,7 +203,7 @@ int main(int argc,char *argv[]) {
   strcpy(host,argv[argc-2]);
   remote_port=atoi(argv[argc-1]);
 
-  sock=ConnexOpen(host,remote_port,NULL); 
+  sock=ConnexOpen(host,remote_port,NULL);
 
   if (sock<0) {
     fprintf(stderr,"Could not connect to host.\n");
@@ -361,12 +398,22 @@ int main(int argc,char *argv[]) {
         }
       }
 
+      /* Read antenna status */
+      for (i=0; i<16; i++) {
+        antenna[i] = (prm->stat.agc >> i) & 1;
+      }
+      for (i=0; i<4; i++) {
+        antenna[i+16] = (prm->stat.lopwr >> i) & 1;
+      }
+
       /* Print date/time and radar operating parameters */
       move(0, 0);
       clrtoeol();
-      printw("%04d-%02d-%02d %02d:%02d:%02d\n",
+      printw("%04d-%02d-%02d %02d:%02d:%02d  %s (%s)\n",
              prm->time.yr,prm->time.mo,prm->time.dy,
-             prm->time.hr,prm->time.mt,prm->time.sc);
+             prm->time.hr,prm->time.mt,prm->time.sc,
+             RadarGetName(network,prm->stid),
+             RadarGetCode(network,prm->stid,0));
       clrtoeol();
       printw("stid  = %3d  cpid  = %d  channel = %d\n", prm->stid,prm->cp,prm->channel);
       clrtoeol();
@@ -459,8 +506,29 @@ int main(int argc,char *argv[]) {
         printw("* Press any key to quit *");
       }
 
+      /* Draw antenna status labels */
+      move(12, 3);
+      for (i=0; i<20; i++) {
+        printw("%3d",i);
+      }
+      printw("\n");
+      printw("Ant");
+      for (i=0; i<20; i++) {
+        printw(" ");
+        if (colorflg) {
+          if (antenna[i]) val = 9;
+          else            val = 12;
+          attron(COLOR_PAIR(val));
+          printw("  ");
+          attroff(COLOR_PAIR(val));
+        } else {
+          if (antenna[i]) printw("++");
+          else            printw("--");
+        }
+      }
+
       /* Draw range gate labels */
-      move(12, 0);
+      move(15, 0);
       if (rngflg) {
         printw("B\\R %d",prm->frang);
         for (i=1; i*10<nrng; i++) {
@@ -478,7 +546,7 @@ int main(int argc,char *argv[]) {
       /* Draw each range gate for each beam */
       for (j=0; j<MAX_BEAMS; j++) {
         if (buffer.beam[j] == 0) continue;
-        move(j+13, 0);
+        move(j+16, 0);
         clrtoeol();
         if ((j==prm->bmnum) && colorflg) attron(COLOR_PAIR(6));
         printw("%02d: ",j);
@@ -513,12 +581,13 @@ int main(int argc,char *argv[]) {
 
       /* Draw a color bar */
       if (colorflg) {
-        move(11, nrng+4);
+        move(14, nrng+4);
+        clrtoeol();
         if (pwrflg)      printw("Pow [dB]");
         else if (velflg) printw("Vel [m/s]");
         else if (widflg) printw("Wid [m/s]");
         else if (elvflg) printw("Elv [deg]");
-        start=12;
+        start=15;
         for (j=12;j>6;j--) {
           attron(COLOR_PAIR(j));
           for (i=start;i<start+2;i++) {
@@ -534,12 +603,12 @@ int main(int argc,char *argv[]) {
 
         if (velflg && gflg) {
           attron(COLOR_PAIR(14));
-          move(25, nrng+5);
+          move(28, nrng+5);
           printw(" ");
           attroff(COLOR_PAIR(14));
           printw(" GS");
         } else {
-          move(25, nrng+5);
+          move(28, nrng+5);
           clrtoeol();
         }
       }

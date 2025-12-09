@@ -13,7 +13,7 @@ LIBS=-lfitcnx.1 -lfit.1 -lcfit.1 -lrscan.1 -lradar.1 -lcnx.1 -ldmap.1 -lopt.1 -l
 ifneq ($(OSTYPE),darwin)
 LIBS += -ltinfo
 endif
-SLIB=-lz
+SLIB=-lm -lz
 DSTPATH = $(BINPATH)
 OUTPUT = fitacfclientgui
 
