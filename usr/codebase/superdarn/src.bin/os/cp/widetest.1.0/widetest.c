@@ -72,7 +72,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"widetest 2025/10/03"};
+char progid[80]={"widetest 2025/12/15"};
 char progname[256];
 
 int arg=0;
@@ -361,6 +361,8 @@ int main(int argc,char *argv[]) {
   printf("Entering Scan loop Station ID: %s  %d\n",ststr,stid);
   do {
 
+    ErrLog(errlog.sock,progname,"Starting scan.");
+
     /* reset clearfreq parameters, in case daytime changed */
     for (iBeam=0; iBeam < nBeams_per_scan; iBeam++) {
       scan_clrfreq_fstart_list[iBeam] = (int32_t) (OpsDayNight() == 1 ? dfrq : nfrq);
@@ -391,7 +393,6 @@ int main(int argc,char *argv[]) {
 
     scan = 1;   /* scan flag */
 
-    ErrLog(errlog.sock,progname,"Starting scan.");
     if (clrscan) startup=1;
     if (xcnt > 0) {
       cnt++;
@@ -510,7 +511,7 @@ int main(int argc,char *argv[]) {
     }
 
     ErrLog(errlog.sock,progname,"Waiting for scan boundary.");
-    if (nowait==0) SiteEndScan(scnsc,scnus,50000);
+    if (nowait==0) SiteEndScan(scnsc,scnus,100000);
   } while (1);
 
   for (n=0; n<tnum; n++) RMsgSndClose(task[n].sock);

@@ -57,7 +57,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"normalsound 2025/11/23"};
+char progid[80]={"normalsound 2025/12/15"};
 char progname[256];
 
 int arg=0;
@@ -366,10 +366,12 @@ int main(int argc,char *argv[])
 
   /* Synchronize start of first scan to minute boundary */
   ErrLog(errlog.sock,progname,"Synchronizing to scan boundary.");
-  SiteEndScan(scnsc,scnus,5000);
+  SiteEndScan(scnsc,scnus,100000);
 
   printf("Entering Scan loop Station ID: %s  %d\n",ststr,stid);
   do {
+
+    ErrLog(errlog.sock,progname,"Starting scan.");
 
     if ((def_nrang != snd_nrang) || (def_rsep != snd_rsep)) {
       printf("Preparing SiteTimeSeq Station ID: %s  %d\n",ststr,stid);
@@ -416,7 +418,6 @@ int main(int argc,char *argv[])
 
     scan = 1;   /* scan flag */
 
-    ErrLog(errlog.sock,progname,"Starting scan.");
     if (clrscan) startup=1;
     if (xcnt>0) {
       cnt++;
@@ -521,7 +522,9 @@ int main(int argc,char *argv[])
 
     } while (1);
 
-    SiteEndScan(1,0,5000);
+    SiteEndScan(1,0,100000);
+
+    ErrLog(errlog.sock,progname,"Starting SND scan.");
 
     /* In here comes the sounder code */
     /* set the "sounder mode" scan variable */
@@ -687,7 +690,7 @@ int main(int argc,char *argv[])
     rsep = def_rsep;
     txpl = def_txpl;
 
-    SiteEndScan(scnsc,scnus,5000);
+    SiteEndScan(scnsc,scnus,100000);
 
   } while (1);
 

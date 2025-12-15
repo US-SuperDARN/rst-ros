@@ -78,7 +78,7 @@ int rst_opterr(char *txt) {
 
 
 int main(int argc,char *argv[]) {
-  char progid[80]={"uafscan 2025/11/23"};
+  char progid[80]={"uafscan 2025/12/15"};
   char progname[256]="uafscan";
   char modestr[32];
 
@@ -704,10 +704,13 @@ int main(int argc,char *argv[]) {
 
   /* Synchronize start of first scan to minute boundary */
   ErrLog(errlog.sock,progname,"Synchronizing to scan boundary.");
-  SiteEndScan(scnsc,scnus,5000);
+  SiteEndScan(scnsc,scnus,100000);
 
   printf("Entering Scan loop Station ID: %s  %d\n",ststr,stid);
   do {
+
+    ErrLog(errlog.sock,progname,"Starting scan.");
+
     /* reset clearfreq paramaters, in case daytime changed */
     for (iBeam =0; iBeam < nBeams_per_scan; iBeam++) {
       scan_clrfreq_fstart_list[iBeam] = (int32_t) (OpsDayNight() == 1 ? dfrq : nfrq);
@@ -740,7 +743,7 @@ int main(int argc,char *argv[]) {
     }
 
     scan=1;
-    ErrLog(errlog.sock,progname,"Starting scan.");
+
     if (clrscan) startup=1;
     if (xcnt>0) {
       cnt++;
@@ -864,7 +867,7 @@ int main(int argc,char *argv[]) {
 
     if ((exitpoll==0) && (nowait==0)) {
       ErrLog(errlog.sock,progname,"Waiting for scan boundary.");
-      SiteEndScan(scnsc,scnus,5000);
+      SiteEndScan(scnsc,scnus,100000);
     }
   } while (exitpoll==0);
   for (n=0;n<tnum;n++) RMsgSndClose(task[n].sock);

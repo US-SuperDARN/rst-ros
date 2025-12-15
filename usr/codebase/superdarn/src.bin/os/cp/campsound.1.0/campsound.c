@@ -57,7 +57,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"campsound 2025/11/23"};
+char progid[80]={"campsound 2025/12/15"};
 char progname[256];
 
 int arg=0;
@@ -311,10 +311,12 @@ int main(int argc,char *argv[])
 
   /* Synchronize start of first scan to minute boundary */
   ErrLog(errlog.sock,progname,"Synchronizing to scan boundary.");
-  SiteEndScan(scnsc,scnus,5000);
+  SiteEndScan(scnsc,scnus,100000);
 
   printf("Entering Scan loop Station ID: %s  %d\n",ststr,stid);
   do {
+
+    ErrLog(errlog.sock,progname,"Starting scan.");
 
     /* Set iBeam for scan loop  */
     iBeam = 0;
@@ -339,7 +341,6 @@ int main(int argc,char *argv[])
 
     scan = 1;   /* scan flag */
 
-    ErrLog(errlog.sock,progname,"Starting scan.");
     if (xcnt>0) {
       cnt++;
       if (cnt==xcnt) {
@@ -443,7 +444,7 @@ int main(int argc,char *argv[])
 
     ErrLog(errlog.sock,progname,"Waiting for scan boundary.");
 
-    SiteEndScan(scnsc,scnus,5000);
+    SiteEndScan(scnsc,scnus,100000);
 
   } while (1);
 

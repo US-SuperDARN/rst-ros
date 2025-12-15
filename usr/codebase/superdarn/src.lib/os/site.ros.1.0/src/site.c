@@ -1201,7 +1201,7 @@ int SiteRosEndScan(int bsc,int bus, unsigned sleepus) {
     if (tick.tv_sec > tock.tv_sec) break;
     if ((tick.tv_sec == tock.tv_sec) && (tick.tv_usec >= (tock.tv_usec-2000))) break;
 
-    if (count >= 100) {
+    if (count >= 5) {
       TCPIPMsgSend(ros.sock, &smsg, sizeof(struct ROSMsg));
       TCPIPMsgRecv(ros.sock, &rmsg, sizeof(struct ROSMsg));
       count = 0;
