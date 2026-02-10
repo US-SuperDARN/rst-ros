@@ -46,6 +46,7 @@ Modifications:
 #include "fitdata.h"
 #include "connex.h"
 #include "fitcnx.h"
+#include "key.h"
 
 #include "errstr.h"
 #include "hlpstr.h"
@@ -84,7 +85,7 @@ int main(int argc,char *argv[]) {
   unsigned char rngflg=0;
   unsigned char gflg=0;
   unsigned char menu=1;
-  double nlevels=5;
+  double nlevels=120;
   double smin=0;
   double smax=0;
   int val=0;
@@ -116,6 +117,10 @@ int main(int argc,char *argv[]) {
   struct FitData *fit;
 
   struct RadarNetwork *network;
+
+  char kname[256];
+  struct key pkey;
+  struct key vkey;
 
   char *envstr=NULL;
   FILE *fp;
@@ -234,22 +239,31 @@ int main(int argc,char *argv[]) {
   /* Initialize colors */
   if (colorflg) {
     start_color();
-    init_pair(1, COLOR_MAGENTA, COLOR_BLACK);
-    init_pair(2, COLOR_BLUE, COLOR_BLACK);
-    init_pair(3, COLOR_GREEN, COLOR_BLACK);
-    init_pair(4, COLOR_CYAN, COLOR_BLACK);
-    init_pair(5, COLOR_YELLOW, COLOR_BLACK);
-    init_pair(6, COLOR_RED, COLOR_BLACK);
 
-    init_pair(7, COLOR_MAGENTA, COLOR_MAGENTA);
-    init_pair(8, COLOR_BLUE, COLOR_BLUE);
-    init_pair(9, COLOR_GREEN, COLOR_GREEN);
-    init_pair(10, COLOR_CYAN, COLOR_CYAN);
-    init_pair(11, COLOR_YELLOW, COLOR_YELLOW);
-    init_pair(12, COLOR_RED, COLOR_RED);
+    envstr = getenv("COLOR_TABLE_PATH");
+    strcpy(kname, envstr);
+    strcat(kname, "blue-red.key");
+    fp = fopen(kname, "r");
+    load_key(fp, &pkey);
 
-    init_pair(13, COLOR_WHITE, COLOR_BLACK);
-    init_pair(14, COLOR_WHITE, COLOR_WHITE);
+    strcpy(kname, envstr);
+    strcat(kname, "red-blue.key");
+    fp = fopen(kname, "r");
+    load_key(fp, &vkey);
+
+    for (i=0; i<nlevels; i++) {
+      init_color(i+8, (int) pkey.r[i*2]*1000./255., (int) pkey.g[i*2]*1000./255., (int) pkey.b[i*2]*1000./255.);
+      init_pair(i+8, i+8, COLOR_BLACK);
+      init_pair(i+8+nlevels, i+8, i+8);
+    }
+
+    init_pair(250, COLOR_RED, COLOR_BLACK);
+    init_pair(251, COLOR_RED, COLOR_RED);
+    init_pair(252, COLOR_GREEN, COLOR_GREEN);
+
+    init_color(253, 700, 700, 700);
+    init_pair(253, 253, COLOR_BLACK);
+    init_pair(254, 253, 253);
 
     if ((!pwrflg) && (!velflg) && (!widflg) && (!elvflg)) pwrflg=1;
 
@@ -286,6 +300,11 @@ int main(int argc,char *argv[]) {
         elvflg=0;
         smin=pmin;
         smax=pmax;
+        for (i=0; i<nlevels; i++) {
+          init_color(i+8, (int) pkey.r[i*2]*1000./255., (int) pkey.g[i*2]*1000./255., (int) pkey.b[i*2]*1000./255.);
+          init_pair(i+8, i+8, COLOR_BLACK);
+          init_pair(i+8+nlevels, i+8, i+8);
+        }
       } else if (c == 'v') {
         pwrflg=0;
         velflg=1;
@@ -293,6 +312,11 @@ int main(int argc,char *argv[]) {
         elvflg=0;
         smin=vmin;
         smax=vmax;
+        for (i=0; i<nlevels; i++) {
+          init_color(i+8, (int) vkey.r[i*2+8]*1000./255., (int) vkey.g[i*2+8]*1000./255., (int) vkey.b[i*2+8]*1000./255.);
+          init_pair(i+8, i+8, COLOR_BLACK);
+          init_pair(i+8+nlevels, i+8, i+8);
+        }
       } else if (c == 'w') {
         pwrflg=0;
         velflg=0;
@@ -300,6 +324,11 @@ int main(int argc,char *argv[]) {
         elvflg=0;
         smin=wmin;
         smax=wmax;
+        for (i=0; i<nlevels; i++) {
+          init_color(i+8, (int) pkey.r[i*2]*1000./255., (int) pkey.g[i*2]*1000./255., (int) pkey.b[i*2]*1000./255.);
+          init_pair(i+8, i+8, COLOR_BLACK);
+          init_pair(i+8+nlevels, i+8, i+8);
+        }
       } else if (c == 'e') {
         pwrflg=0;
         velflg=0;
@@ -307,6 +336,11 @@ int main(int argc,char *argv[]) {
         elvflg=1;
         smin=emin;
         smax=emax;
+        for (i=0; i<nlevels; i++) {
+          init_color(i+8, (int) pkey.r[i*2]*1000./255., (int) pkey.g[i*2]*1000./255., (int) pkey.b[i*2]*1000./255.);
+          init_pair(i+8, i+8, COLOR_BLACK);
+          init_pair(i+8+nlevels, i+8, i+8);
+        }
       } else if (c == 'g') {
         gflg = !gflg;
       } else if (c == 'r') {
@@ -341,11 +375,21 @@ int main(int argc,char *argv[]) {
           velflg=1;
           smin=vmin;
           smax=vmax;
+          for (i=0; i<nlevels; i++) {
+            init_color(i+8, (int) vkey.r[i*2+8]*1000./255., (int) vkey.g[i*2+8]*1000./255., (int) vkey.b[i*2+8]*1000./255.);
+            init_pair(i+8, i+8, COLOR_BLACK);
+            init_pair(i+8+nlevels, i+8, i+8);
+          }
         } else if (velflg) {
           velflg=0;
           widflg=1;
           smin=wmin;
           smax=wmax;
+          for (i=0; i<nlevels; i++) {
+            init_color(i+8, (int) pkey.r[i*2]*1000./255., (int) pkey.g[i*2]*1000./255., (int) pkey.b[i*2]*1000./255.);
+            init_pair(i+8, i+8, COLOR_BLACK);
+            init_pair(i+8+nlevels, i+8, i+8);
+          }
         } else if (widflg) {
           widflg=0;
           elvflg=1;
@@ -368,11 +412,21 @@ int main(int argc,char *argv[]) {
           pwrflg=1;
           smin=pmin;
           smax=pmax;
+          for (i=0; i<nlevels; i++) {
+            init_color(i+8, (int) pkey.r[i*2]*1000./255., (int) pkey.g[i*2]*1000./255., (int) pkey.b[i*2]*1000./255.);
+            init_pair(i+8, i+8, COLOR_BLACK);
+            init_pair(i+8+nlevels, i+8, i+8);
+          }
         } else if (widflg) {
           widflg=0;
           velflg=1;
           smin=vmin;
           smax=vmax;
+          for (i=0; i<nlevels; i++) {
+            init_color(i+8, (int) vkey.r[i*2+8]*1000./255., (int) vkey.g[i*2+8]*1000./255., (int) vkey.b[i*2+8]*1000./255.);
+            init_pair(i+8, i+8, COLOR_BLACK);
+            init_pair(i+8+nlevels, i+8, i+8);
+          }
         } else if (elvflg) {
           elvflg=0;
           widflg=1;
@@ -516,8 +570,8 @@ int main(int argc,char *argv[]) {
       for (i=0; i<20; i++) {
         printw(" ");
         if (colorflg) {
-          if (antenna[i]) val = 9;
-          else            val = 12;
+          if (antenna[i]) val = 252;
+          else            val = 251;
           attron(COLOR_PAIR(val));
           printw("  ");
           attroff(COLOR_PAIR(val));
@@ -548,20 +602,20 @@ int main(int argc,char *argv[]) {
         if (buffer.beam[j] == 0) continue;
         move(j+16, 0);
         clrtoeol();
-        if ((j==prm->bmnum) && colorflg) attron(COLOR_PAIR(6));
+        if ((j==prm->bmnum) && colorflg) attron(COLOR_PAIR(250));
         printw("%02d: ",j);
-        if ((j==prm->bmnum) && colorflg) attroff(COLOR_PAIR(6));
+        if ((j==prm->bmnum) && colorflg) attroff(COLOR_PAIR(250));
         for (i=0; i<nrng; i++) {
           if (buffer.qflg[j][i] == 1) {
             if (colorflg) {
-              if (pwrflg)      val = (int)((buffer.pow[j][i]-smin)/(smax-smin)*nlevels)+1;
-              else if (velflg) val = (int)((buffer.vel[j][i]-smin)/(smax-smin)*nlevels)+1;
-              else if (widflg) val = (int)((buffer.wid[j][i]-smin)/(smax-smin)*nlevels)+1;
-              else if (elvflg) val = (int)((buffer.elv[j][i]-smin)/(smax-smin)*nlevels)+1;
+              if (pwrflg)      val = (int)((buffer.pow[j][i]-smin)/(smax-smin)*nlevels)+8;
+              else if (velflg) val = (int)((buffer.vel[j][i]-smin)/(smax-smin)*nlevels)+8;
+              else if (widflg) val = (int)((buffer.wid[j][i]-smin)/(smax-smin)*nlevels)+8;
+              else if (elvflg) val = (int)((buffer.elv[j][i]-smin)/(smax-smin)*nlevels)+8;
 
-              if (val < 1) val=1;
-              if (val > nlevels+1) val=nlevels+1;
-              if (gflg && velflg && buffer.gsct[j][i]) attron(COLOR_PAIR(13));
+              if (val < 8) val=8;
+              if (val > nlevels+7) val=nlevels+7;
+              if (gflg && velflg && buffer.gsct[j][i]) attron(COLOR_PAIR(253));
               else                                     attron(COLOR_PAIR(val));
             }
 
@@ -569,7 +623,7 @@ int main(int argc,char *argv[]) {
             else                        printw("i");
 
             if (colorflg) {
-              if (gflg && velflg && buffer.gsct[j][i]) attroff(COLOR_PAIR(13));
+              if (gflg && velflg && buffer.gsct[j][i]) attroff(COLOR_PAIR(253));
               else                                     attroff(COLOR_PAIR(val));
             }
           } else {
@@ -587,25 +641,36 @@ int main(int argc,char *argv[]) {
         else if (velflg) printw("Vel [m/s]");
         else if (widflg) printw("Wid [m/s]");
         else if (elvflg) printw("Elv [deg]");
+
+        start=26;
+        for (j=0;j<12;j++) {
+          attron(COLOR_PAIR((int)(j*nlevels/12.) + nlevels+8));
+          move(start-j, nrng+5);
+          printw(" ");
+          attroff(COLOR_PAIR((int)(j*nlevels/12.) + nlevels+8));
+        }
+
         start=15;
         for (j=12;j>6;j--) {
-          attron(COLOR_PAIR(j));
           for (i=start;i<start+2;i++) {
-            move(i, nrng+5);
-            printw(" ");
+            move(i, nrng+7);
+            clrtoeol();
           }
-          attroff(COLOR_PAIR(j));
-          move(i-1, nrng+7);
+          if (velflg && j > 9) {
+            move(i-2, nrng+7);
+          } else {
+            move(i-1, nrng+7);
+          }
           clrtoeol();
-          printw("%d",(int)((j-7)*(smax-smin)/nlevels+smin));
+          printw("%d",(int)((j-7)*(smax-smin)/5+smin));
           start=start+2;
         }
 
         if (velflg && gflg) {
-          attron(COLOR_PAIR(14));
+          attron(COLOR_PAIR(254));
           move(28, nrng+5);
           printw(" ");
-          attroff(COLOR_PAIR(14));
+          attroff(COLOR_PAIR(254));
           printw(" GS");
         } else {
           move(28, nrng+5);

@@ -47,6 +47,7 @@ Modifications:
 #include "fitdata.h"
 #include "connex.h"
 #include "fitcnx.h"
+#include "key.h"
 
 #include "errstr.h"
 #include "hlpstr.h"
@@ -108,12 +109,15 @@ struct PlotOptions {
   int snd;
   int hold;
   int force;
+  struct key pkey;
+  struct key vkey;
 };
 
 struct OptionData opt;
 
 
 void init_plot(struct PlotOptions *plot);
+void init_key(struct PlotOptions *plot);
 int check_key(int c, struct PlotOptions *plot);
 void read_fit_data(struct RadarParm *prm, struct FitData *fit, struct FitBuffer *fbuf, struct PlotOptions *plot);
 void read_snd_data(struct RadarParm *prm, struct FitData *fit, struct SndBuffer *sbuf, struct PlotOptions *plot);
@@ -150,6 +154,7 @@ int main(int argc,char *argv[]) {
 
   struct RadarNetwork *network;
 
+  char kname[256];
   char *envstr=NULL;
   FILE *fp;
 
@@ -275,22 +280,29 @@ int main(int argc,char *argv[]) {
   /* Initialize colors */
   if (plot.colorflg) {
     start_color();
-    init_pair(1, COLOR_MAGENTA, COLOR_BLACK);
-    init_pair(2, COLOR_BLUE, COLOR_BLACK);
-    init_pair(3, COLOR_GREEN, COLOR_BLACK);
-    init_pair(4, COLOR_CYAN, COLOR_BLACK);
-    init_pair(5, COLOR_YELLOW, COLOR_BLACK);
-    init_pair(6, COLOR_RED, COLOR_BLACK);
 
-    init_pair(7, COLOR_MAGENTA, COLOR_MAGENTA);
-    init_pair(8, COLOR_BLUE, COLOR_BLUE);
-    init_pair(9, COLOR_GREEN, COLOR_GREEN);
-    init_pair(10, COLOR_CYAN, COLOR_CYAN);
-    init_pair(11, COLOR_YELLOW, COLOR_YELLOW);
-    init_pair(12, COLOR_RED, COLOR_RED);
+    /* Load rainbow color table (power, width, elevation) */
+    envstr = getenv("COLOR_TABLE_PATH");
+    strcpy(kname, envstr);
+    strcat(kname, "blue-red.key");
+    fp = fopen(kname, "r");
+    load_key(fp, &plot.pkey);
 
-    init_pair(13, COLOR_WHITE, COLOR_BLACK);
-    init_pair(14, COLOR_WHITE, COLOR_WHITE);
+    /* Load blue-red color table (velocity) */
+    strcpy(kname, envstr);
+    strcat(kname, "red-blue.key");
+    fp = fopen(kname, "r");
+    load_key(fp, &plot.vkey);
+
+    init_key(&plot);
+
+    init_pair(250, COLOR_RED, COLOR_BLACK);
+    init_pair(251, COLOR_RED, COLOR_RED);
+    init_pair(252, COLOR_GREEN, COLOR_GREEN);
+
+    init_color(253, 700, 700, 700);
+    init_pair(253, 253, COLOR_BLACK);
+    init_pair(254, 253, 253);
 
     if ((!plot.pwrflg) && (!plot.velflg) && (!plot.widflg) && (!plot.elvflg)) plot.pwrflg=1;
 
@@ -377,7 +389,7 @@ void init_plot(struct PlotOptions *plot) {
   plot->gflg = 0;
   plot->menu = 1;
 
-  plot->nlevels = 5;
+  plot->nlevels = 120;
   plot->smin = 0;
   plot->smax = 0;
 
@@ -408,6 +420,28 @@ void init_plot(struct PlotOptions *plot) {
 }
 
 
+void init_key(struct PlotOptions *plot) {
+
+  int i;
+
+  if (plot->velflg) {
+    /* Load red-blue velocity color table */
+    for (i=0; i<plot->nlevels; i++) {
+      init_color(i+8, (int) plot->vkey.r[i*2+8]*1000./255., (int) plot->vkey.g[i*2+8]*1000./255., (int) plot->vkey.b[i*2+8]*1000./255.);
+      init_pair(i+8, i+8, COLOR_BLACK);
+      init_pair(i+8+plot->nlevels, i+8, i+8);
+    }
+  } else {
+    /* Load rainbow color table */
+    for (i=0; i<plot->nlevels; i++) {
+      init_color(i+8, (int) plot->pkey.r[i*2]*1000./255., (int) plot->pkey.g[i*2]*1000./255., (int) plot->pkey.b[i*2]*1000./255.);
+      init_pair(i+8, i+8, COLOR_BLACK);
+      init_pair(i+8+plot->nlevels, i+8, i+8);
+    }
+  }
+}
+
+
 /* Check for key press to change options or exit */
 int check_key(int c, struct PlotOptions *plot) {
 
@@ -419,6 +453,7 @@ int check_key(int c, struct PlotOptions *plot) {
       plot->elvflg = 0;
       plot->smin = plot->pmin;
       plot->smax = plot->pmax;
+      init_key(plot);
     } else if (c == 'v') {
       plot->pwrflg = 0;
       plot->velflg = 1;
@@ -426,6 +461,7 @@ int check_key(int c, struct PlotOptions *plot) {
       plot->elvflg = 0;
       plot->smin = plot->vmin;
       plot->smax = plot->vmax;
+      init_key(plot);
     } else if (c == 'w') {
       plot->pwrflg = 0;
       plot->velflg = 0;
@@ -433,6 +469,7 @@ int check_key(int c, struct PlotOptions *plot) {
       plot->elvflg = 0;
       plot->smin = plot->wmin;
       plot->smax = plot->wmax;
+      init_key(plot);
     } else if (c == 'e') {
       plot->pwrflg = 0;
       plot->velflg = 0;
@@ -440,6 +477,7 @@ int check_key(int c, struct PlotOptions *plot) {
       plot->elvflg = 1;
       plot->smin = plot->emin;
       plot->smax = plot->emax;
+      init_key(plot);
     } else if (c == 'g') {
       plot->gflg = !plot->gflg;
     } else if (c == 'r') {
@@ -495,11 +533,13 @@ int check_key(int c, struct PlotOptions *plot) {
         plot->velflg = 1;
         plot->smin = plot->vmin;
         plot->smax = plot->vmax;
+        init_key(plot);
       } else if (plot->velflg) {
         plot->velflg = 0;
         plot->widflg = 1;
         plot->smin = plot->wmin;
         plot->smax = plot->wmax;
+        init_key(plot);
       } else if (plot->widflg) {
         plot->widflg = 0;
         plot->elvflg = 1;
@@ -522,11 +562,13 @@ int check_key(int c, struct PlotOptions *plot) {
         plot->pwrflg = 1;
         plot->smin = plot->pmin;
         plot->smax = plot->pmax;
+        init_key(plot);
       } else if (plot->widflg) {
         plot->widflg = 0;
         plot->velflg = 1;
         plot->smin = plot->vmin;
         plot->smax = plot->vmax;
+        init_key(plot);
       } else if (plot->elvflg) {
         plot->elvflg = 0;
         plot->widflg = 1;
@@ -732,8 +774,8 @@ void draw_ant_status(struct RadarParm *prm, struct PlotOptions *plot) {
   for (i=0; i<20; i++) {
     printw(" ");
     if (plot->colorflg) {
-      if (antenna[i]) val = 9;
-      else            val = 12;
+      if (antenna[i]) val = 252;
+      else            val = 251;
       attron(COLOR_PAIR(val));
       printw("  ");
       attroff(COLOR_PAIR(val));
@@ -777,21 +819,21 @@ void draw_fit_data(struct RadarParm *prm, struct FitBuffer *fbuf, struct PlotOpt
 
     if (fbuf->beam[j] == 0) continue;
 
-    if ((j==prm->bmnum) && (!plot->snd || plot->force) && plot->colorflg) attron(COLOR_PAIR(6));
+    if ((j==prm->bmnum) && (!plot->snd || plot->force) && plot->colorflg) attron(COLOR_PAIR(250));
     printw("%02d: ",j);
-    if ((j==prm->bmnum) && (!plot->snd || plot->force) && plot->colorflg) attroff(COLOR_PAIR(6));
+    if ((j==prm->bmnum) && (!plot->snd || plot->force) && plot->colorflg) attroff(COLOR_PAIR(250));
 
     for (i=0; i<plot->nrng; i++) {
       if (fbuf->qflg[j][i] == 1) {
         if (plot->colorflg) {
-          if (plot->pwrflg)      val = (int)((fbuf->pow[j][i]-plot->smin)/(plot->smax-plot->smin)*plot->nlevels)+1;
-          else if (plot->velflg) val = (int)((fbuf->vel[j][i]-plot->smin)/(plot->smax-plot->smin)*plot->nlevels)+1;
-          else if (plot->widflg) val = (int)((fbuf->wid[j][i]-plot->smin)/(plot->smax-plot->smin)*plot->nlevels)+1;
-          else if (plot->elvflg) val = (int)((fbuf->elv[j][i]-plot->smin)/(plot->smax-plot->smin)*plot->nlevels)+1;
+          if (plot->pwrflg)      val = (int)((fbuf->pow[j][i]-plot->smin)/(plot->smax-plot->smin)*plot->nlevels)+8;
+          else if (plot->velflg) val = (int)((fbuf->vel[j][i]-plot->smin)/(plot->smax-plot->smin)*plot->nlevels)+8;
+          else if (plot->widflg) val = (int)((fbuf->wid[j][i]-plot->smin)/(plot->smax-plot->smin)*plot->nlevels)+8;
+          else if (plot->elvflg) val = (int)((fbuf->elv[j][i]-plot->smin)/(plot->smax-plot->smin)*plot->nlevels)+8;
 
-          if (val < 1) val=1;
-          if (val > plot->nlevels+1) val=plot->nlevels+1;
-          if (plot->gflg && plot->velflg && fbuf->gsct[j][i]) attron(COLOR_PAIR(13));
+          if (val < 8) val=8;
+          if (val > plot->nlevels+7) val=plot->nlevels+7;
+          if (plot->gflg && plot->velflg && fbuf->gsct[j][i]) attron(COLOR_PAIR(253));
           else                                                attron(COLOR_PAIR(val));
         }
 
@@ -799,7 +841,7 @@ void draw_fit_data(struct RadarParm *prm, struct FitBuffer *fbuf, struct PlotOpt
         else                       printw("i");
 
         if (plot->colorflg) {
-          if (plot->gflg && plot->velflg && fbuf->gsct[j][i]) attroff(COLOR_PAIR(13));
+          if (plot->gflg && plot->velflg && fbuf->gsct[j][i]) attroff(COLOR_PAIR(253));
           else                                                attroff(COLOR_PAIR(val));
         }
       } else {
@@ -843,23 +885,23 @@ void draw_snd_data(struct RadarParm *prm, struct SndBuffer *sbuf, struct PlotOpt
     move(j+16, 0);
     clrtoeol();
 
-    if ((j==plot->f) && (prm->bmnum==plot->b) && (plot->snd || plot->force) && plot->colorflg) attron(COLOR_PAIR(6));
+    if ((j==plot->f) && (prm->bmnum==plot->b) && (plot->snd || plot->force) && plot->colorflg) attron(COLOR_PAIR(250));
     printw("%3d ",j*5+80);
-    if ((j==plot->f) && (prm->bmnum==plot->b) && (plot->snd || plot->force) && plot->colorflg) attroff(COLOR_PAIR(6));
+    if ((j==plot->f) && (prm->bmnum==plot->b) && (plot->snd || plot->force) && plot->colorflg) attroff(COLOR_PAIR(250));
 
     if (sbuf->beam[plot->b][j] == 0) continue;
 
     for (i=0; i<plot->nrng; i++) {
       if (sbuf->qflg[plot->b][i][j] == 1) {
         if (plot->colorflg) {
-          if (plot->pwrflg)      val = (int)((sbuf->pow[plot->b][i][j]-plot->smin)/(plot->smax-plot->smin)*plot->nlevels)+1;
-          else if (plot->velflg) val = (int)((sbuf->vel[plot->b][i][j]-plot->smin)/(plot->smax-plot->smin)*plot->nlevels)+1;
-          else if (plot->widflg) val = (int)((sbuf->wid[plot->b][i][j]-plot->smin)/(plot->smax-plot->smin)*plot->nlevels)+1;
-          else if (plot->elvflg) val = (int)((sbuf->elv[plot->b][i][j]-plot->smin)/(plot->smax-plot->smin)*plot->nlevels)+1;
+          if (plot->pwrflg)      val = (int)((sbuf->pow[plot->b][i][j]-plot->smin)/(plot->smax-plot->smin)*plot->nlevels)+8;
+          else if (plot->velflg) val = (int)((sbuf->vel[plot->b][i][j]-plot->smin)/(plot->smax-plot->smin)*plot->nlevels)+8;
+          else if (plot->widflg) val = (int)((sbuf->wid[plot->b][i][j]-plot->smin)/(plot->smax-plot->smin)*plot->nlevels)+8;
+          else if (plot->elvflg) val = (int)((sbuf->elv[plot->b][i][j]-plot->smin)/(plot->smax-plot->smin)*plot->nlevels)+8;
 
-          if (val < 1) val=1;
-          if (val > plot->nlevels+1) val=plot->nlevels+1;
-          if (plot->gflg && plot->velflg && sbuf->gsct[plot->b][i][j]) attron(COLOR_PAIR(13));
+          if (val < 8) val=8;
+          if (val > plot->nlevels+7) val=plot->nlevels+7;
+          if (plot->gflg && plot->velflg && sbuf->gsct[plot->b][i][j]) attron(COLOR_PAIR(253));
           else                                                         attron(COLOR_PAIR(val));
         }
 
@@ -867,7 +909,7 @@ void draw_snd_data(struct RadarParm *prm, struct SndBuffer *sbuf, struct PlotOpt
         else                                printw("i");
 
         if (plot->colorflg) {
-          if (plot->gflg && plot->velflg && sbuf->gsct[plot->b][i][j]) attroff(COLOR_PAIR(13));
+          if (plot->gflg && plot->velflg && sbuf->gsct[plot->b][i][j]) attroff(COLOR_PAIR(253));
           else                                                         attroff(COLOR_PAIR(val));
         }
       } else {
@@ -903,8 +945,9 @@ void draw_snd_data(struct RadarParm *prm, struct SndBuffer *sbuf, struct PlotOpt
 void draw_colorbar(struct PlotOptions *plot) {
 
   int i,j;
-  int start=15;
+  int start;
   int rng=plot->nrng;
+  int nlevels=plot->nlevels;
 
   move(14, rng+4);
   if (plot->pwrflg)      printw("Pow [dB]");
@@ -912,24 +955,35 @@ void draw_colorbar(struct PlotOptions *plot) {
   else if (plot->widflg) printw("Wid [m/s]");
   else if (plot->elvflg) printw("Elv [deg]");
 
-  for (j=12; j>6; j--) {
-    attron(COLOR_PAIR(j));
-    for (i=start; i<start+2; i++) {
-      move(i, rng+5);
-      printw(" ");
+  start=26;
+  for (j=0;j<12;j++) {
+    attron(COLOR_PAIR((int)(j*nlevels/12.) + nlevels+8));
+    move(start-j, rng+5);
+    printw(" ");
+    attroff(COLOR_PAIR((int)(j*nlevels/12.) + nlevels+8));
+  }
+
+  start=15;
+  for (j=12;j>6;j--) {
+    for (i=start;i<start+2;i++) {
+      move(i, rng+7);
+      clrtoeol();
     }
-    attroff(COLOR_PAIR(j));
-    move(i-1, rng+7);
+    if (plot->velflg && j > 9) {
+      move(i-2, rng+7);
+    } else {
+      move(i-1, rng+7);
+    }
     clrtoeol();
-    printw("%d",(int)((j-7)*(plot->smax-plot->smin)/plot->nlevels+plot->smin));
+    printw("%d",(int)((j-7)*(plot->smax-plot->smin)/5+plot->smin));
     start=start+2;
   }
 
   if (plot->velflg && plot->gflg) {
-    attron(COLOR_PAIR(14));
+    attron(COLOR_PAIR(254));
     move(28, rng+5);
     printw(" ");
-    attroff(COLOR_PAIR(14));
+    attroff(COLOR_PAIR(254));
     printw(" GS");
   } else {
     move(28, rng+5);
