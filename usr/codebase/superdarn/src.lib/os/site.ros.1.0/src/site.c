@@ -111,6 +111,15 @@ int SiteRosStart(char *host,char *ststr) {
 
   ros.sock = 0;
 
+  for (nave=0; nave<MAXNAVE; nave++) {
+    seqatten[nave] = 0;
+    seqnoise[nave] = 0;
+    seqbadtr[nave].num = 0;
+    seqbadtr[nave].start = NULL;
+    seqbadtr[nave].length = NULL;
+  }
+  nave = 0;
+
   config_dir = getenv("SD_SITE_PATH");
   if (config_dir == NULL) {
     fprintf(stderr,"Environment variable 'SD_SITE_PATH' not defined\nSiteRosStart aborting\n");
@@ -768,8 +777,6 @@ int SiteRosIntegrate(int (*lags)[2]) {
   /* Start of SiteIntegration loop was located here */
   SiteRosExit(0);
 
-  seqatten[nave] = 0;
-  seqnoise[nave] = 0;
   seqbadtr[nave].num = 0;
 
   rprm.tbeam = bmnum;
