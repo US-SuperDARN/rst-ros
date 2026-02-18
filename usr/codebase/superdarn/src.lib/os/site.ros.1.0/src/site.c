@@ -272,6 +272,14 @@ int SiteRosStart(char *host,char *ststr) {
     fprintf(stderr,"Site Cfg Warning:: 'smsep' setting undefined in site cfg file, using: %d\n",smsep);
   }
 
+  /* Get the USRP RF sampling rate value */
+  if (config_lookup_int(&cfg, "rfrate", &ltemp)) {
+    rfrate = ltemp;
+  } else {
+    rfrate = 5;
+    fprintf(stderr,"Site Cfg Warning:: 'rfrate' setting undefined in site cfg file, using: %d\n",rfrate);
+  }
+
   /* Get the ROS server address */
   if (host !=NULL) {
     strcpy(ros.host,host);
@@ -356,6 +364,8 @@ int SiteRosSetupRadar() {
   temp32 = rnum;
   TCPIPMsgSend(ros.sock, &temp32, sizeof(int32));
   temp32 = cnum;
+  TCPIPMsgSend(ros.sock, &temp32, sizeof(int32));
+  temp32 = rfrate;
   TCPIPMsgSend(ros.sock, &temp32, sizeof(int32));
   TCPIPMsgRecv(ros.sock, &rmsg, sizeof(struct ROSMsg));
   if (rmsg.status < 0) {

@@ -72,7 +72,7 @@ char *dfststr="tst";
 char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
-char progid[80]={"rbspscan 2025/12/15"};
+char progid[80]={"rbspscan 2026/02/18"};
 char progname[256];
 int arg=0;
 struct OptionData opt;
@@ -201,6 +201,7 @@ int main(int argc,char *argv[]) {
   /* ========= PROCESS COMMAND LINE ARGUMENTS ============= */
   OptionAdd(&opt,"di",    'x',&discretion);
   OptionAdd(&opt,"wide",  'x',&wide_tx);
+  OptionAdd(&opt,"rfrate",'i',&rfrate);
   OptionAdd(&opt,"fast",  'x',&fast);
   OptionAdd(&opt,"pfisr", 'x',&pfisr);
   OptionAdd(&opt,"tromso",'x',&tromso);
@@ -632,6 +633,7 @@ void usage(void)
   printf("    -di     : indicates running during discretionary time\n");
   printf("  -wide     : use a wide transmission beam\n");
   printf("  -fast     : run beam sequence that can do full scans in 1-min\n");
+  printf("-rfrate int : set the USRP RF sampling rate (MHz) [5]\n");
   printf(" -frang int : delay to first range (km) [180]\n");
   printf("  -rsep int : range separation (km) [45]\n");
   printf("    -dt int : hour when day freq. is used\n");

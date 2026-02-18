@@ -50,7 +50,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"soundingscan 2025/12/15"};
+char progid[80]={"soundingscan 2026/02/18"};
 char progname[256];
 
 int arg=0;
@@ -145,6 +145,7 @@ int main(int argc,char *argv[]) {
 
   OptionAdd(&opt, "di",     'x', &discretion);
   OptionAdd(&opt, "wide",   'x', &wide_tx);
+  OptionAdd(&opt, "rfrate", 'i', &rfrate);
   OptionAdd(&opt, "frang",  'i', &frang);
   OptionAdd(&opt, "rsep",   'i', &rsep);
   OptionAdd(&opt, "nrang",  'i', &nrang);
@@ -502,6 +503,7 @@ void usage(void)
   printf("    -di     : indicates running during discretionary time\n");
   printf("  -wide     : use a wide transmission beam\n");
   printf("  -fast     : 1-min scan (2-min default)\n");
+  printf("-rfrate int : set the USRP RF sampling rate (MHz) [5]\n");
   printf(" -frang int : delay to first range (km) [180]\n");
   printf("  -rsep int : range separation (km) [45]\n");
   printf(" -nrang int : number of range gates\n");

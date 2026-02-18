@@ -53,7 +53,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"ptab16flip 2025/12/15"};
+char progid[80]={"ptab16flip 2026/02/18"};
 char progname[256];
 
 int arg=0;
@@ -125,6 +125,7 @@ int main(int argc,char *argv[])
 
   OptionAdd(&opt, "di",     'x', &discretion);
   OptionAdd(&opt, "wide",   'x', &wide_tx);
+  OptionAdd(&opt, "rfrate", 'i', &rfrate);
   OptionAdd(&opt, "dt",     'i', &day);
   OptionAdd(&opt, "nt",     'i', &night);
   OptionAdd(&opt, "df",     'i', &dfrq);
@@ -470,6 +471,7 @@ void usage(void)
     printf("  -stid char: radar string (required)\n");
     printf("    -di     : indicates running during discretionary time\n");
     printf("  -wide     : use a wide transmission beam\n");
+    printf("-rfrate int : set the USRP RF sampling rate (MHz) [5]\n");
     printf("    -dt int : hour when day freq. is used\n");
     printf("    -nt int : hour when night freq. is used\n");
     printf("    -df int : daytime frequency (kHz)\n");

@@ -151,6 +151,7 @@ extern int nfrang;
 extern int stfrq;
 extern int frqrng;
 
+extern int rfrate;
 extern int wide_tx;
 
 /* lists for parameters across a scan, need to send to usrp_server for swings to work.. */
