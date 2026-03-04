@@ -563,11 +563,13 @@ int main(int argc,char *argv[]) {
       /* Draw antenna status labels */
       move(12, 3);
       for (i=0; i<20; i++) {
+        if (i == 16) printw("  ");
         printw("%3d",i);
       }
       printw("\n");
       printw("Ant");
       for (i=0; i<20; i++) {
+        if (i == 16) printw("  ");
         printw(" ");
         if (colorflg) {
           if (antenna[i]) val = 252;

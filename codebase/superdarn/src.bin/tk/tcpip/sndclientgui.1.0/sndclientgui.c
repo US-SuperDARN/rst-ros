@@ -766,12 +766,14 @@ void draw_ant_status(struct RadarParm *prm, struct PlotOptions *plot) {
   /* Draw antenna status labels */
   move(12, 3);
   for (i=0; i<20; i++) {
+    if (i == 16) printw("  ");
     printw("%3d",i);
   }
   printw("\n");
 
   printw("Ant");
   for (i=0; i<20; i++) {
+    if (i == 16) printw("  ");
     printw(" ");
     if (plot->colorflg) {
       if (antenna[i]) val = 252;
