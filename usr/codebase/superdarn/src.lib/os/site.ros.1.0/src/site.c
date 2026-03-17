@@ -713,7 +713,7 @@ int SiteRosIntegrate(int (*lags)[2]) {
 
   int atstp=0;
   int thr=0,lmt=0;
-  int aflg=0,abflg=0;
+  int abflg=0;
   void *dest=NULL; /*AJ*/
   int total_samples=0; /*AJ*/
   int usecs;
@@ -1093,9 +1093,9 @@ int SiteRosIntegrate(int (*lags)[2]) {
         //if (debug) fprintf(stderr,"%s seq %d :: rngoff %d rxchn %d\n"
         //                          "%s seq %d :: ACFSumPower\n",
         //                   station,nave,rngoff,rxchn,station,nave);
-        aflg = ACFSumPower(&tsgprm,mplgs,lagtable,pwr0,(int16 *)dest,
-                           rngoff,skpnum!=0,roff,ioff,badrng,noise,mxpwr,
-                           seqatten[nave]*atstp,thr,lmt,&abflg);
+        ACFSumPower(&tsgprm,mplgs,lagtable,pwr0,(int16 *)dest,
+                    rngoff,skpnum!=0,roff,ioff,badrng,noise,mxpwr,
+                    seqatten[nave]*atstp,thr,lmt,&abflg);
         //if (debug) fprintf(stderr,"%s seq %d :: rngoff %d rxchn %d\n"
         //                          "%s seq %d :: ACFCalculate acf\n",
         //                   station,nave,rngoff,rxchn,station,nave);
