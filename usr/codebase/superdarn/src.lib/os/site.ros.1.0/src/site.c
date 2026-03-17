@@ -98,7 +98,7 @@ int SiteRosStart(char *host,char *ststr) {
 
   int n,ltemp,retval;
   const char *str;
-  char *dfststr="tst";
+  char *dfststr="lab";
 
   char *config_dir=NULL;
   char config_filepath[256];

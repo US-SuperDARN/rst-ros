@@ -1,5 +1,5 @@
 /* rbspcan.c
- ============
+   =========
  Author: S.G.Shepherd
 
  Based on themisscan.1.6 this is a 3 camping beam mode to work out the
@@ -68,11 +68,11 @@
 #include "siteglobal.h"
 
 char *ststr=NULL;
-char *dfststr="tst";
+char *dfststr="lab";
 char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
-char progid[80]={"rbspscan 2026/02/18"};
+char progid[80]={"rbspscan 2026/03/17"};
 char progname[256];
 int arg=0;
 struct OptionData opt;

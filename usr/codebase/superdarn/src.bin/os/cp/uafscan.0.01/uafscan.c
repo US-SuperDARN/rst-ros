@@ -1,5 +1,5 @@
 /* uafscan.c
-   ============
+   =========
    Author: R.J.Barnes & J.Spaleta & J.Klein
 */
 
@@ -78,14 +78,14 @@ int rst_opterr(char *txt) {
 
 
 int main(int argc,char *argv[]) {
-  char progid[80]={"uafscan 2026/02/18"};
+  char progid[80]={"uafscan 2026/03/17"};
   char progname[256]="uafscan";
   char modestr[32];
 
   char *roshost=NULL;
 
   char *ststr=NULL;
-  char *dfststr="tst";
+  char *dfststr="lab";
 
   char *libstr="ros";
   char *beampattern=NULL;

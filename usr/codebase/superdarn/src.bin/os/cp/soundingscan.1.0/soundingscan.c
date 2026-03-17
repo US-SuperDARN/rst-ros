@@ -1,5 +1,5 @@
 /* soundingscan.c
-   ============
+   ==============
    Adapted from icescan: K.T. Sterne, originally normalscan by:
    Author: R.J.Barnes & J.Spaleta
 */
@@ -44,13 +44,13 @@
 #include "tsg.h"
 
 char *ststr=NULL;
-char *dfststr="tst";
+char *dfststr="lab";
 char *libstr="ros";
 
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"soundingscan 2026/02/18"};
+char progid[80]={"soundingscan 2026/03/17"};
 char progname[256];
 
 int arg=0;

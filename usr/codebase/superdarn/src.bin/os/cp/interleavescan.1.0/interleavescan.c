@@ -1,5 +1,5 @@
 /* interleavescan.c
- ==================
+   ================
  Author: S.G.Shepherd
 
  A mode which interleaves miniscans (jumps by 4 beams) in order to provide
@@ -55,7 +55,7 @@
 #include "siteglobal.h"
 
 char *ststr=NULL;
-char *dfststr="tst";
+char *dfststr="lab";
 char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;

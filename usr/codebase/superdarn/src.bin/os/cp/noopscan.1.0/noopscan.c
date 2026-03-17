@@ -42,13 +42,13 @@
 #include "tsg.h"
 
 char *ststr=NULL;
-char *dfststr="tst";
+char *dfststr="lab";
 char *libstr="ros";
 
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"noopscan 2025/05/27"};
+char progid[80]={"noopscan 2026/03/17"};
 char progname[256];
 
 int arg=0;
