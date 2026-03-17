@@ -916,7 +916,7 @@ int SiteRosIntegrate(int (*lags)[2]) {
   for (i=0; i<num_transmitters; i++) {
     agcstat = agcstat | (txstatus.AGC[i] << i);
     if (i > 15) {
-      lopwrstat = lopwrstat | (txstatus.LOWPWR[i] << i-16);
+      lopwrstat = lopwrstat | (txstatus.LOWPWR[i] << (i-16));
     }
   }
 
