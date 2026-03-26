@@ -60,12 +60,14 @@ int OpsBuild7pulse(struct sequence *ptr) {
   ptr->mpinc = 2400;
   ptr->mplgexs = 0;
 
-  tmp = malloc(sizeof(ptab));
+  if (ptr->ptab==NULL) tmp = malloc(sizeof(ptab));
+  else tmp = realloc(ptr->ptab,sizeof(ptab));
   if (tmp==NULL) return -1;
   memcpy(tmp,ptab,sizeof(ptab));
   ptr->ptab = tmp;
 
-  tmp = malloc(sizeof(lags));
+  if (ptr->lags==NULL) tmp = malloc(sizeof(lags));
+  else tmp = realloc(ptr->lags,sizeof(lags));
   if (tmp==NULL) return -1;
   memcpy(tmp,lags,sizeof(lags));
   ptr->lags = tmp;
@@ -114,12 +116,14 @@ int OpsBuild8pulse(struct sequence *ptr) {
   ptr->mpinc = 1500;
   ptr->mplgexs = 0;
 
-  tmp = malloc(sizeof(ptab));
+  if (ptr->ptab==NULL) tmp = malloc(sizeof(ptab));
+  else tmp = realloc(ptr->ptab,sizeof(ptab));
   if (tmp==NULL) return -1;
   memcpy(tmp,ptab,sizeof(ptab));
   ptr->ptab = tmp;
 
-  tmp = malloc(sizeof(lags));
+  if (ptr->lags==NULL) tmp = malloc(sizeof(lags));
+  else tmp = realloc(ptr->lags,sizeof(lags));
   if (tmp==NULL) return -1;
   memcpy(tmp,lags,sizeof(lags));
   ptr->lags = tmp;
@@ -263,12 +267,14 @@ int OpsBuild16pulse(struct sequence *ptr) {
   ptr->mpinc = 100;
   ptr->mplgexs = 0;
 
-  tmp = malloc(sizeof(ptab));
+  if (ptr->ptab==NULL) tmp = malloc(sizeof(ptab));
+  else tmp = realloc(ptr->ptab,sizeof(ptab));
   if (tmp==NULL) return -1;
   memcpy(tmp,ptab,sizeof(ptab));
   ptr->ptab = tmp;
 
-  tmp = malloc(sizeof(lags));
+  if (ptr->lags==NULL) tmp = malloc(sizeof(lags));
+  else tmp = realloc(ptr->lags,sizeof(lags));
   if (tmp==NULL) return -1;
   memcpy(tmp,lags,sizeof(lags));
   ptr->lags = tmp;
@@ -333,12 +339,14 @@ int OpsBuildTauscan(struct sequence *ptr) {
   }
   ptr->mplgexs++;
 
-  tmp = malloc(sizeof(ptab));
+  if (ptr->ptab==NULL) tmp = malloc(sizeof(ptab));
+  else tmp = realloc(ptr->ptab,sizeof(ptab));
   if (tmp==NULL) return -1;
   memcpy(tmp,ptab,sizeof(ptab));
   ptr->ptab = tmp;
 
-  tmp = malloc(sizeof(lags));
+  if (ptr->lags==NULL) tmp = malloc(sizeof(lags));
+  else tmp = realloc(ptr->lags,sizeof(lags));
   if (tmp==NULL) return -1;
   memcpy(tmp,lags,sizeof(lags));
   ptr->lags = tmp;
@@ -392,12 +400,14 @@ int OpsBuildTauscan11(struct sequence *ptr) {
   }
   ptr->mplgexs++;
 
-  tmp = malloc(sizeof(ptab));
+  if (ptr->ptab==NULL) tmp = malloc(sizeof(ptab));
+  else tmp = realloc(ptr->ptab,sizeof(ptab));
   if (tmp==NULL) return -1;
   memcpy(tmp,ptab,sizeof(ptab));
   ptr->ptab = tmp;
 
-  tmp = malloc(sizeof(lags));
+  if (ptr->lags==NULL) tmp = malloc(sizeof(lags));
+  else tmp = realloc(ptr->lags,sizeof(lags));
   if (tmp==NULL) return -1;
   memcpy(tmp,lags,sizeof(lags));
   ptr->lags = tmp;
