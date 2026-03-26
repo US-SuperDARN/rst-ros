@@ -55,7 +55,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"normalsound_usrp 2026/03/17"};
+char progid[80]={"normalsound_usrp 2026/03/26"};
 char progname[256];
 
 int arg=0;
@@ -108,6 +108,7 @@ int main(int argc,char *argv[]) {
   unsigned char version=0;
 
   unsigned char snd_flg=0;
+  unsigned char longpulse=0;
 
   /* Flag and variables for beam synchronizing */
   int bm_sync = 0;
@@ -164,6 +165,7 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt, "setintt",'x', &setintt);
   OptionAdd(&opt, "baud",   'i', &nbaud);
   OptionAdd(&opt, "tau",    'i', &mpinc);
+  OptionAdd(&opt, "longpulse",'x',&longpulse);
   OptionAdd(&opt, "c",      'i', &cnum);
   OptionAdd(&opt, "ros",    't', &roshost);    /* Set the roshost IP address */
   OptionAdd(&opt, "debug",  'x', &debug);
@@ -215,6 +217,16 @@ int main(int argc,char *argv[]) {
   if (status==-1) {
     fprintf(stderr,"Error reading site configuration file.\n");
     exit(1);
+  }
+
+  if (longpulse) {
+    OpsBuild16pulse(seq);
+    mppul = seq->mppul;
+    mplgs = seq->mplgs;
+    mpinc = seq->mpinc;
+    nrang = 300;
+    rsep  = 15;
+    txpl  = 100;
   }
 
   /* reprocess the commandline since some things are reset by SiteStart */
@@ -559,6 +571,7 @@ void usage(void)
     printf(" -intus int : integration period microseconds.\n");
     printf("  -baud int : baud to use for Barker phase coded sequence (1,2,3,4,5,7,11,13) [1]\n");
     printf("   -tau int : lag spacing in usecs [1500]\n");
+    printf("-longpulse  : set to use the extended 16-pulse sequence.\n");
     printf("     -c int : channel number for multi-channel radars.\n");
     printf("   -ros char: change the roshost IP address\n");
     printf(" --help     : print this message and quit.\n");
