@@ -185,7 +185,7 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt, "sb", 'i', &sbm);
   OptionAdd(&opt, "eb", 'i', &ebm);
   OptionAdd(&opt, "camp", 'i', &camp);
-  OptionAdd(&opt, "c",'i',&cnum);
+  OptionAdd(&opt, "c", 'i', &cnum);
   OptionAdd(&opt, "clrskip", 'i', &clrskip);
   OptionAdd(&opt, "cpid", 'i', &cpid);
   OptionAdd(&opt, "meribm", 'i', &meribm);

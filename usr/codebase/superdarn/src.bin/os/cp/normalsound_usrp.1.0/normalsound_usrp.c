@@ -169,7 +169,7 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt, "debug",  'x', &debug);
   OptionAdd(&opt, "-help",  'x', &hlp);        /* just dump some parameters */
   OptionAdd(&opt, "-option",'x', &option);
-  OptionAdd(&opt,"-version",'x',&version);
+  OptionAdd(&opt,"-version",'x', &version);
 
   /* process the commandline; need this for setting errlog port */
   arg=OptionProcess(1,argc,argv,&opt,rst_opterr);

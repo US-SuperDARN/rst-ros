@@ -170,7 +170,7 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt, "debug",  'x', &debug);
   OptionAdd(&opt, "-help",  'x', &hlp);      /* just dump some parameters */
   OptionAdd(&opt, "-option",'x', &option);
-  OptionAdd(&opt,"-version",'x',&version);
+  OptionAdd(&opt,"-version",'x', &version);
 
   OptionAdd(&opt, "baud",   'i', &nbaud);
   OptionAdd(&opt, "tau",    'i', &mpinc);
