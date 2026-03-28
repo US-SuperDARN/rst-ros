@@ -73,7 +73,7 @@ int operate(pid_t parent,int sock) {
   char freq_filepath[100];
   struct FreqTable *ftable=NULL;
 
-  int stid,tfreq,dfreq,rnum,cnum,s,i;
+  int stid,tfreq,dfreq,rnum,cnum,rfrate,s,i;
   float noise=0.5;
 
   int txpow=20;
@@ -126,6 +126,7 @@ int operate(pid_t parent,int sock) {
         TCPIPMsgRecv(sock, &ststr, data_length*sizeof(char));
         TCPIPMsgRecv(sock, &rnum, sizeof(int));
         TCPIPMsgRecv(sock, &cnum, sizeof(int));
+        TCPIPMsgRecv(sock, &rfrate, sizeof(int));
 
         envstr=getenv("SD_SITE_PATH");
         if ((ststr !=NULL) && (envstr !=NULL)) {
