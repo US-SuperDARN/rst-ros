@@ -639,7 +639,6 @@ int SiteRosTimeSeq(int *ptab) {
   txpl  = tsgprm.txpl;
 
   tprm.index   = index;
-/*  memcpy(&tprm.buf,tsgbuf,sizeof(struct TSGbuf));*/
   tprm.len     = tsgbuf->len;
   tprm.step    = CLOCK_PERIOD;
   tprm.samples = tsgprm.samples;
