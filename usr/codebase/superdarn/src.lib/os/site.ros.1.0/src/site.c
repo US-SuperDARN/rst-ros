@@ -405,7 +405,7 @@ int SiteRosSetupRadar() {
     ErrLog(errlog.sock,"SiteRosSetupRadar",logtxt);
   }
 
-  sprintf(sharedmemory,"IQBuff_%s_%d_%d",station,rnum,cnum);
+  sprintf(sharedmemory,"IQBuff_%s_%d",station,cnum);
 
   samples=(int16 *)
     ShMemAlloc(sharedmemory,iqbufsize,O_RDWR | O_CREAT,1,&shmemfd);
