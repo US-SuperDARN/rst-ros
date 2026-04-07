@@ -123,7 +123,7 @@ int main(int argc,char *argv[]) {
   mppul = seq->mppul;
   mplgs = seq->mplgs;
   mpinc = seq->mpinc;
-  nbaud = 3;
+  nbaud = 5;
 
   /* ========= PROCESS COMMAND LINE ARGUMENTS ============= */
 
@@ -527,7 +527,7 @@ void usage(void)
   printf("  -wide     : use a wide transmission beam\n");
   printf("  -fast     : 1-min scan (2-min default)\n");
   printf("-rfrate int : set the USRP RF sampling rate (MHz) [5]\n");
-  printf("  -baud int : baud to use for Barker phase coded sequence (1,2,3,4,5,7,11,13) [3]\n");
+  printf("  -baud int : baud to use for Barker phase coded sequence (1,2,3,4,5,7,11,13) [5]\n");
   printf("   -tau int : lag spacing (usecs) [1500]\n");
   printf(" -frang int : delay to first range (km) [180]\n");
   printf("  -rsep int : range separation (km) [15]\n");
