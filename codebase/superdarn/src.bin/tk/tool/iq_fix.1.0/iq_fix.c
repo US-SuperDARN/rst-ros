@@ -1,6 +1,10 @@
 /* iq_fix.c
    ========
    Author: E.G.Thomas
+
+   Reprocesses an iqdat file by removing the first sequence of the first beam
+     in a scan. For some MSI radars this sequence was shifted in time relative
+     to the others, introducing noise in the first beam of a scan.
 */
 
 /*
@@ -22,6 +26,12 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 Modifications:
+
+20250115 SGS implemented a simple algorithm that compares the power (squared)
+             of the first sample of a sequence to the mean power (squared) of
+             the entire sequence. If the power in the first sample is less than
+             the mean, the sequence is considered to be shifted and is excluded
+             from the record.
 */ 
 
 #include <stdio.h>
@@ -48,22 +58,7 @@ Modifications:
 #include "errstr.h"
 #include "hlpstr.h"
 
-struct RadarParm *prm=NULL;
-struct IQ *iq=NULL;
-unsigned int *badtr=NULL;
-int16 *samples=NULL;
-
-struct IQ *oiq=NULL;
-struct timespec *otime=NULL;
-int *oatten=NULL;
-float *onoise=NULL;
-int *ooffset=NULL;
-int *osize=NULL;
-int *otbadtr=NULL;
-unsigned int *obadtr=NULL;
-int16 *osamples=NULL;
-
-struct OptionData opt;
+struct OptionData opt;    /* why does this have to be global?! */
 
 int rst_opterr(char *txt) {
   fprintf(stderr,"Option not recognized: %s\n",txt);
@@ -73,159 +68,259 @@ int rst_opterr(char *txt) {
  
 int main (int argc,char *argv[]) {
 
-  int arg=0;
+  struct RadarParm *prm;
+  struct IQ *iq, *oiq;
+  unsigned int *badtr=NULL;
+  unsigned int *obadtr=NULL;
+  int16 *samples, *osamples;
 
-  unsigned char vb=0;
-  unsigned char help=0;
-  unsigned char option=0;
-  unsigned char version=0;
+  unsigned char vb, help, option, version;
+  int arg, chnnum;
 
-  int chnnum=0;
-
-  FILE *fp=NULL;
+  FILE *fp = NULL;
 
   time_t ctime;
-  int n=0;
+  int k, n, m, baselen;
   char command[128];
-  char tmstr[40];
+  char tmstr[40], modstr[40];
 
-  int offset1=0;
-  int offset2=0;
-  int badtrnum=0;
-  int size=0;
+  int c, off, off1, off2, fac;
+  int *badseq;
+  int nseq, nbadtr;
+  double pwr0, mnpwr;
 
-  prm=RadarParmMake();
-  iq=IQMake();
+  vb = help = option = version = 0;
+  arg = chnnum = 0;
+  badseq = NULL;
+  samples = osamples = NULL;
 
-  oiq=IQMake();
+  /* create some structures */
+  prm = RadarParmMake();
+  iq  = IQMake();
+  oiq = IQMake();
 
+  /* command line option processing */
   OptionAdd(&opt,"-help",'x',&help);
   OptionAdd(&opt,"-option",'x',&option);
   OptionAdd(&opt,"-version",'x',&version);
   OptionAdd(&opt,"vb",'x',&vb);
   OptionAdd(&opt,"chnnum",'i',&chnnum);
 
-  arg=OptionProcess(1,argc,argv,&opt,rst_opterr);
+  arg = OptionProcess(1,argc,argv,&opt,rst_opterr);
 
-  if (arg==-1) {
-    exit(-1);
-  }
-
-  if (help==1) {
+  if (arg == -1) exit(-1);
+  if (help == 1) {
     OptionPrintInfo(stdout,hlpstr);
     exit(0);
   }
-
-  if (option==1) {
+  if (option == 1) {
     OptionDump(stdout,&opt);
     exit(0);
   }
-
-  if (version==1) {
+  if (version == 1) {
     OptionVersion(stdout);
     exit(0);
   }
 
-  if (arg==argc) fp=stdin;
-  else fp=fopen(argv[arg],"r");
+  if (arg == argc) fp = stdin;
+  else             fp = fopen(argv[arg],"r");
 
-  if (fp==NULL) {
+  if (fp == NULL) {
     fprintf(stderr,"File not found.\n");
     exit(-1);
   }
 
-
-  command[0]=0;
-  for (int c=0; c<argc; c++) {
-    n+=strlen(argv[c])+1;
-    if (n>127) break;
-    if (c !=0) strcat(command," ");
+  n = command[0] = 0;
+  for (c=0; c<argc; c++) {
+    n += strlen(argv[c])+1;
+    if (n > 127) break;
+    if (c != 0) strcat(command," ");
     strcat(command, argv[c]);
   }
+  baselen = strlen(command);
 
-  while (IQFread(fp,prm,iq,&badtr,&samples) !=-1) {
+  /* read through the iqdat file and process each record */
+  while (IQFread(fp, prm, iq, &badtr, &samples) != -1) {
 
-    if (vb==1) {
-      fprintf(stderr,"%d-%d-%d %d:%d:%d beam=%d nave=%d\n",prm->time.yr,prm->time.mo,
-              prm->time.dy,prm->time.hr,prm->time.mt,prm->time.sc,prm->bmnum,prm->nave);
-    }
+    /* set -vb for logfile output */
+    if (vb) fprintf(stderr,"%04d%02d%02d %02d%02d%02d %d %02d %02d",
+                    prm->time.yr, prm->time.mo, prm->time.dy,
+                    prm->time.hr, prm->time.mt, prm->time.sc,
+                    prm->cp, prm->bmnum, iq->seqnum);
 
-    prm->origin.code=1;
-    ctime= time((time_t) 0);
-    RadarParmSetOriginCommand(prm,command);
-    strcpy(tmstr,asctime(gmtime(&ctime)));
-    tmstr[24]=0;
-    RadarParmSetOriginTime(prm,tmstr);
+    prm->origin.code = 1;
+    ctime = time((time_t)0);
+    strcpy(tmstr, asctime(gmtime(&ctime)));
+    tmstr[24] = 0;
+    RadarParmSetOriginTime(prm, tmstr);
 
-    if ((prm->scan == 1) && (prm->nave > 1)) {
-      size = 0;
-      badtrnum = 0;
-      for (n=1; n<iq->seqnum; n++) {
-        size += iq->size[n];
-        badtrnum += iq->badtr[n];
+    /* logic array to indicate which sequence(s) are shifted (bad) */
+    badseq = (int *)realloc(badseq, iq->seqnum*sizeof(int));
+
+    nseq = nbadtr = 0;
+    /* look at each sequence and determine whether it is shifted (bad) or not */
+    for (n=0; n<iq->seqnum; n++) {
+
+      off1 = n*4*iq->smpnum;
+      /* compute mean power in main samples for each sequence (not using
+         interferometer samples, but maybe could?) */
+      mnpwr = 0;
+      for (m=0; m<iq->smpnum; m++)
+        mnpwr += samples[off1+2*m]*samples[off1+2*m] +
+                 samples[off1+1+2*m]*samples[off1+1+2*m];
+      // no sqrt, do we need it?
+      pwr0 = samples[off1]*samples[off1] + samples[off1+1]*samples[off1+1];
+      pwr0 *= pwr0; // square of power
+
+      /* comparing the mean power over the entire sequence to the power at
+         the start of the sequence, which should be a pulse */
+      if (pwr0 < mnpwr) {
+        //printf("%02d BAD\n", n);    /* write to an output file for stats? */
+        badseq[n] = 1;
+        if (vb) fprintf(stderr," %02d", n);
+      } else {
+        badseq[n] = 0;
+        nbadtr += iq->badtr[n];   /* should just be 8*nseq */
+        nseq++;
       }
-      offset2 = iq->offset[1];
+    }
+    if (vb) fprintf(stderr,"\n");
 
-      prm->nave -= 1;
+    /* add original and modified number of sequences to origin string */
+    sprintf(modstr, " %d %d", iq->seqnum, nseq);
+    strcpy(command+baselen, modstr);
+    RadarParmSetOriginCommand(prm, command);
+
+//-----------------------------------------------------------------------------
+/* debugging
+        printf("iq->seqnum = %d\n", iq->seqnum);
+        printf("iq->smpnum = %d\n", iq->smpnum);
+        printf("iq->skpnum = %d\n", iq->skpnum);
+        printf("iq->tbadtr = %d\n", iq->tbadtr);
+      printf("offset   size     badtr\n");
+      for (n=0; n<iq->seqnum; n++) {
+        printf("%5d %4d %1d", iq->offset[n], iq->size[n], iq->badtr[n]);
+        for (m=0; m<2*iq->badtr[n]; m++)
+          printf(" %u", badtr[n*2*iq->badtr[n]+m]);
+        printf("\n");
+      }
+
+      return (-1);
+
+    printf("\n");
+    for (k=0; k<iq->seqnum; k++) printf("  %2d %d\n", k, badseq[k]);
+    printf("\n");
+*/
+//-----------------------------------------------------------------------------
+
+    if (nseq == iq->seqnum) {   /* no bad sequences detected */
+
+      if (chnnum > 0) iq->chnnum = chnnum;
+
+      // FIX: fix the badtr array (*5) for these beams as well ...
+      if (badtr[0] < 50) {  /* early IQ data files assumed that
+                               samples were pulse width so values
+                               are incorrect */
+
+        off1 = 0;
+        fac = 5;
+        for (n=0; n<iq->seqnum; n++) {
+          for (k=0; k<2*iq->badtr[n]; k++) badtr[off1+k] *= fac;
+          off1 += 2*iq->badtr[n];
+        }
+      }
+
+      IQFwrite(stdout,prm,iq,badtr,samples);
+
+    } else {                    /* there are bad sequences */
+      /* create a new structure with only the good sequences and write it */
+      prm->nave = nseq;
       oiq->revision.major = iq->revision.major;
       oiq->revision.minor = iq->revision.minor;
       if (chnnum > 0) oiq->chnnum = chnnum;
       else            oiq->chnnum = iq->chnnum;
       oiq->smpnum = iq->smpnum;
       oiq->skpnum = iq->skpnum;
-      oiq->seqnum = iq->seqnum - 1;
-      oiq->tbadtr = badtrnum;
+      oiq->seqnum = nseq;
+      oiq->tbadtr = nbadtr;   /* total number of pulses */
 
-      if (oiq->tval == NULL) otime=malloc(oiq->seqnum*sizeof(struct timespec));
-      else otime=realloc(oiq->tval,oiq->seqnum*sizeof(struct timespec));
-      memcpy(otime,&iq->tval[1],oiq->seqnum*sizeof(struct timespec));
-      oiq->tval = otime;
+      // FIX: Not sure how this works with channels...
 
-      if (oiq->atten == NULL) oatten=malloc(oiq->seqnum*sizeof(int));
-      else oatten=realloc(oiq->atten,oiq->seqnum*sizeof(int));
-      memcpy(oatten,&iq->atten[1],oiq->seqnum*sizeof(int));
-      oiq->atten = oatten;
+      //printf(" nseq = %d\n", nseq);
 
-      if (oiq->noise == NULL) onoise=malloc(oiq->seqnum*sizeof(float));
-      else onoise=realloc(oiq->noise,oiq->seqnum*sizeof(float));
-      memcpy(onoise,&iq->noise[1],oiq->seqnum*sizeof(float));
-      oiq->noise = onoise;
+      if (nseq > 0) {
+        oiq->tval   = (struct timespec *)realloc(oiq->tval,
+                                                  nseq*sizeof(struct timespec));
+        oiq->atten  = (int *)realloc(oiq->atten,   nseq*sizeof(int));
+        oiq->offset = (int *)realloc(oiq->offset,  nseq*sizeof(int));
+        oiq->size   = (int *)realloc(oiq->size,    nseq*sizeof(int));
+        oiq->badtr  = (int *)realloc(oiq->badtr,   nseq*sizeof(int));
+        oiq->noise  = (float *)realloc(oiq->noise, nseq*sizeof(float));
 
-      if (oiq->offset == NULL) ooffset=malloc(oiq->seqnum*sizeof(int));
-      else ooffset=realloc(oiq->offset,oiq->seqnum*sizeof(int));
-      memcpy(ooffset,&iq->offset[1],oiq->seqnum*sizeof(int));
-      oiq->offset = ooffset;
-      for (n=0; n<oiq->seqnum; n++) oiq->offset[n] -= offset2;
+        osamples = (int16 *)realloc(osamples, nseq*4*iq->smpnum*sizeof(int16));
+        obadtr   = (unsigned int *)realloc(obadtr,
+                                                nbadtr*2*sizeof(unsigned int));
+/*
+printf(" nbadtr = %d\n", nbadtr);
+printf(" %d elements\n", nseq*4);
+printf(" %d elements\n", nbadtr*2);
+*/
 
-      if (oiq->size == NULL) osize=malloc(oiq->seqnum*sizeof(int));
-      else osize=realloc(oiq->size,oiq->seqnum*sizeof(int));
-      memcpy(osize,&iq->size[1],oiq->seqnum*sizeof(int));
-      oiq->size = osize;
+        /* badtr array has the start times in us and the lengths */
 
-      if (oiq->badtr == NULL) otbadtr=malloc(oiq->seqnum*sizeof(int));
-      else otbadtr=realloc(oiq->badtr,oiq->seqnum*sizeof(int));
-      memcpy(otbadtr,&iq->badtr[1],oiq->seqnum*sizeof(int));
-      oiq->badtr = otbadtr;
-      offset1 = 2*iq->badtr[0];
+        off = off1 = off2 = 0;
+        fac = (badtr[0] < 50) ? 5 : 1;  /* early IQ data files assumed that
+                                           samples were pulse width so values
+                                           are incorrect */
+        for (m=n=0; n<iq->seqnum; n++) {
+          if (badseq[n] == 0) {
+            /* I,Q s for main array, I,Q s for interferometer array */
+            for (k=0; k<4*iq->smpnum; k++)
+              osamples[m*4*iq->smpnum+k] = samples[n*4*iq->smpnum+k];
 
-      if (obadtr == NULL) obadtr=malloc(badtrnum*2*sizeof(unsigned int));
-      else obadtr=realloc(obadtr,badtrnum*2*sizeof(unsigned int));
-      memcpy(obadtr,&badtr[offset1],badtrnum*2*sizeof(unsigned int));
+            oiq->tval[m]   = iq->tval[m];
+            oiq->atten[m]  = iq->atten[n];
+            oiq->noise[m]  = iq->noise[n];
+            oiq->offset[m] = off; //m*4*iq->smpnum;  // Check this...
+            oiq->badtr[m]  = iq->badtr[n];
+            oiq->size[m]   = 4*iq->smpnum;
+            off += oiq->size[m];
+            for (k=0; k<2*iq->badtr[n]; k++) obadtr[off1+k] = fac*badtr[off2+k];
 
-      if (osamples == NULL) osamples=malloc(size*sizeof(int16));
-      else osamples=realloc(osamples,size*sizeof(int16));
-      memcpy(osamples,samples+offset2,size*sizeof(int16));
+            off1 += 2*iq->badtr[n]; /* index into obadtr */
+            m++;  /* good sequence counter */
+          }
+          off2 += 2*iq->badtr[n];   /* index into badtr */
+        }
+        IQFwrite(stdout,prm,oiq,obadtr,osamples);
+      } else {
+        /* FIX: what to do if the only sequences are all bad? */
+        /* do these all have to be free'd and set to NULL? */
+        //oiq->tval   = 
+        //oiq->atten  = (int *)realloc(oiq->atten,   nseq*sizeof(int));
+        //oiq->offset = (int *)realloc(oiq->offset,  nseq*sizeof(int));
+        //oiq->size   = (int *)realloc(oiq->size,    nseq*sizeof(int));
+        //oiq->badtr  = (int *)realloc(oiq->badtr,   nseq*sizeof(int));
+        //oiq->noise  = (float *)realloc(oiq->noise, nseq*sizeof(float));
+        IQFwrite(stdout,prm,oiq,NULL,NULL);
+        //fprintf(stderr, "Should NOT be here!!\n");
+      }
+    } /* end bad sequence(s) detected */
+  }   /* end reading through file */
 
-      IQFwrite(stdout,prm,oiq,obadtr,osamples);
-    } else {
-      if (chnnum > 0) iq->chnnum=chnnum;
-      IQFwrite(stdout,prm,iq,badtr,samples);
-    }
+  if (fp != stdin) fclose(fp);
 
-  }
+  IQFree(iq);
+  IQFree(oiq);
 
-  if (fp !=stdin) fclose(fp);
+  /* arrays in structure get freed but what about samples?! */
+  if (samples != NULL) free(samples);
+  if (osamples != NULL) free(osamples);
+  if (badtr != NULL) free(badtr);
+  if (obadtr != NULL) free(obadtr);
 
-  return 0;
+  free(badseq);
 
+  return (0);
 }
+
