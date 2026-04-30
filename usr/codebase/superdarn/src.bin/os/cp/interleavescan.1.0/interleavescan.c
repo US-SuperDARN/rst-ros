@@ -174,6 +174,7 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt,"clrscan",'x',&clrscan);
   OptionAdd(&opt,"clrskip",'i',&clrskip);
   OptionAdd(&opt,"fixfrq",'i',&fixfrq);     /* fix the transmit frequency */
+  OptionAdd(&opt,"frqrng",'i',&frqrng);     /* range of transmit frequencies */
   OptionAdd(&opt,"bm_sync",'x',&bm_sync);   /* flag to enable beam sync   */
   OptionAdd(&opt,"bmsc",  'i',&bmsc);       /* beam sync period, sec      */
   OptionAdd(&opt,"bmus",  'i',&bmus);       /* beam sync period, microsec */
@@ -558,6 +559,7 @@ void usage(void)
   printf("-clrscan    : Force clear frequency search at start of scan\n");
   printf("-clrskip int: Minimum number of seconds to skip between clear frequency search\n");
   printf("-fixfrq int : transmit on fixed frequency (kHz)\n");
+  printf("-frqrng int : Range of transmit frequency band (kHz)\n");
   printf("-bm_sync    : set to enable beam syncing.\n");
   printf("  -bmsc int : beam syncing interval seconds.\n");
   printf("  -bmus int : beam syncing interval microseconds.\n");
