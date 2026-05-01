@@ -69,7 +69,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"normalscan 2026/03/17"};
+char progid[80]={"normalscan 2026/04/30"};
 char progname[256];
 
 int arg=0;
@@ -534,7 +534,7 @@ void usage(void)
   printf("    -bp int : base port\n");
   printf("  -cpid int : set to override control program id\n");
   printf("-fixfrq int : transmit on fixed frequency (kHz)\n");
-  printf("-frqrng int : Range of transmit frequency band (kHz)\n"); 
+  printf("-frqrng int : set the clear frequency search window (kHz)\n");
   printf("-nowait     : do not wait at end of scan boundary.\n");
   printf("-clrscan    : Force clear frequency search at start of scan\n");
   printf("-clrskip int: Minimum number of seconds to skip between clear frequency search\n");
