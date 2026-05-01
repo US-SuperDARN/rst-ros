@@ -1,13 +1,11 @@
 /* interleavescan.c
- ============
+   ================
  Author: S.G.Shepherd
 
  A mode which interleaves miniscans (jumps by 4 beams) in order to provide
   larger spatial coverage in a faster time but still do all beams in 1 minute.
 
  In support of the ERG mission.
-
- The mode here is specific to 20 beams for cve (0-19) and cvw (23-4).
 
  Eliminating the 'fast' option since we want this to be a 1-minute scan.
 
@@ -57,11 +55,11 @@
 #include "siteglobal.h"
 
 char *ststr=NULL;
-char *dfststr="tst";
+char *dfststr="lab";
 char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
-char progid[80]={"interleavescan 2025/12/15"};
+char progid[80]={"interleavescan 2026/03/17"};
 char progname[256];
 int arg=0;
 struct OptionData opt;
@@ -121,6 +119,15 @@ int main(int argc,char *argv[]) {
   unsigned char version=0;
 
   /*
+    beam sequences for 24-beam radars using all beams (forward and backward)
+   */
+  /* count     1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24*/
+  int bmse_24[24] =
+             { 0, 4, 8,12,16,20, 2, 6,10,14,18,22, 1, 5, 9,13,17,21, 3, 7,11,15,19,23};
+  int bmsw_24[24] =
+             {23,19,15,11, 7, 3,21,17,13, 9, 5, 1,22,18,14,10, 6, 2,20,16,12, 8, 4, 0};
+
+  /*
     beam sequences for 24-beam MSI radars but only using 20 most meridional
       beams;
    */
@@ -158,6 +165,7 @@ int main(int argc,char *argv[]) {
   /* ========= PROCESS COMMAND LINE ARGUMENTS ============= */
   OptionAdd(&opt,"di",    'x',&discretion);
   OptionAdd(&opt,"wide",  'x',&wide_tx);
+  OptionAdd(&opt,"rfrate",'i',&rfrate);
   OptionAdd(&opt,"frang", 'i',&frang);
   OptionAdd(&opt,"rsep",  'i',&rsep);
   OptionAdd(&opt,"dt",    'i',&day);
@@ -170,6 +178,7 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt,"sp",    'i',&shell.port);
   OptionAdd(&opt,"bp",    'i',&baseport);
   OptionAdd(&opt,"stid",  't',&ststr);
+  OptionAdd(&opt,"nb",    'i',&nbm);        /* number of beams per "scan" */
   OptionAdd(&opt,"nowait",'x',&nowait);
   OptionAdd(&opt,"clrscan",'x',&clrscan);
   OptionAdd(&opt,"clrskip",'i',&clrskip);
@@ -211,12 +220,22 @@ int main(int argc,char *argv[]) {
   if (ststr==NULL) ststr=dfststr;
 
   /* Point to the beams here */
-  if ((strcmp(ststr,"cve") == 0) || (strcmp(ststr,"ice") == 0) || (strcmp(ststr,"fhe") == 0)) {
-    bms = bmse;     /* 1-min sequence */
+  if ((strcmp(ststr,"cve") == 0) || (strcmp(ststr,"ice") == 0) || (strcmp(ststr,"lab") == 0)) {
+    if (nbm == 24) {
+      bms = bmse_24;
+    } else {
+      bms = bmse;
+    }
   } else if ((strcmp(ststr,"cvw") == 0) || (strcmp(ststr,"icw") == 0) || (strcmp(ststr,"bks") == 0)) {
-    bms = bmsw;     /* 1-min sequence */
+    if (nbm == 24) {
+      bms = bmsw_24;
+    } else {
+      bms = bmsw;
+    }
+  } else if (strcmp(ststr,"fhe") == 0) {
+    bms = bmse;
   } else if (strcmp(ststr,"fhw") == 0) {
-    bms = bmsw;     /* 1-min sequence */
+    bms = bmsw;
     for (i=0; i<nbm; i++)
       bms[i] -= 2;
   } else {
@@ -544,6 +563,7 @@ void usage(void)
   printf("  -stid char: radar string (required)\n");
   printf("    -di     : indicates running during discretionary time\n");
   printf("  -wide     : use a wide transmission beam\n");
+  printf("-rfrate int : set the USRP RF sampling rate (MHz) [5]\n");
   printf(" -frang int : delay to first range (km) [180]\n");
   printf("  -rsep int : range separation (km) [45]\n");
   printf("    -dt int : hour when day freq. is used\n");
@@ -556,6 +576,7 @@ void usage(void)
   printf("    -sp int : shell port\n");
   printf("    -bp int : base port\n");
   printf("-nowait     : Do not wait for minute scan boundary\n");
+  printf("    -nb int : number of beams per scan (16,20,24)\n");
   printf("-clrscan    : Force clear frequency search at start of scan\n");
   printf("-clrskip int: Minimum number of seconds to skip between clear frequency search\n");
   printf("-fixfrq int : transmit on fixed frequency (kHz)\n");

@@ -766,12 +766,14 @@ void draw_ant_status(struct RadarParm *prm, struct PlotOptions *plot) {
   /* Draw antenna status labels */
   move(12, 3);
   for (i=0; i<20; i++) {
+    if (i == 16) printw("  ");
     printw("%3d",i);
   }
   printw("\n");
 
   printw("Ant");
   for (i=0; i<20; i++) {
+    if (i == 16) printw("  ");
     printw(" ");
     if (plot->colorflg) {
       if (antenna[i]) val = 252;
@@ -927,17 +929,15 @@ void draw_snd_data(struct RadarParm *prm, struct SndBuffer *sbuf, struct PlotOpt
     clrtoeol();
   }
 
-  if (!plot->force) {
-    for (j=0; j<SND_FREQS; j++) {
-      if (sbuf->time[plot->b][j] > ftime) {
-        ftime = sbuf->time[plot->b][j];
-      }
+  for (j=0; j<SND_FREQS; j++) {
+    if (sbuf->time[plot->b][j] > ftime) {
+      ftime = sbuf->time[plot->b][j];
     }
-    TimeEpochToYMDHMS(ftime,&yr,&mo,&dy,&hr,&mt,&sc);
-    move(14, 0);
-    printw("SND Beam: %02d   SND Time:", plot->b);
-    if (ftime > 0) printw(" %04d-%02d-%02d %02d:%02d:%02d", yr,mo,dy,hr,mt,(int)sc);
   }
+  TimeEpochToYMDHMS(ftime,&yr,&mo,&dy,&hr,&mt,&sc);
+  move(14, 0);
+  printw("SND Beam: %02d   SND Time:", plot->b);
+  if (ftime > 0) printw(" %04d-%02d-%02d %02d:%02d:%02d", yr,mo,dy,hr,mt,(int)sc);
 }
 
 

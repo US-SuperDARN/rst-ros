@@ -1,5 +1,5 @@
 /* pcppcodescan.c
-   ============
+   ==============
    Author: J.Spaleta & R.J.Barnes
 */
 
@@ -68,13 +68,13 @@ int pcpfreqs[PCPFNUM]={10200, 10800, 11800, 12500, 13500, 14500, 15500, 16500};
 int pcpcnt;
 
 char *ststr=NULL;
-char *dfststr="tst";
+char *dfststr="lab";
 char *libstr="ros";
 
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"pcppcodescan 2025/12/15"};
+char progid[80]={"pcppcodescan 2026/03/17"};
 char progname[256];
 
 int arg=0;
@@ -144,6 +144,7 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt,"di",'x',&discretion);
 
   OptionAdd(&opt,"wide",'x',&wide_tx);
+  OptionAdd(&opt,"rfrate",'i',&rfrate);
   OptionAdd(&opt,"frang",'i',&frang);
   OptionAdd(&opt,"rsep",'i',&rsep);
 

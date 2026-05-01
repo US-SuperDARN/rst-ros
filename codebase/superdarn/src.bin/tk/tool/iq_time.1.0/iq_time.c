@@ -76,6 +76,7 @@ int main (int argc,char *argv[]) {
 
   int n=0;
   int yr,mo,dy,hr,mt;
+  int nbaud;
   double tval,sec;
 
   prm=RadarParmMake();
@@ -128,11 +129,13 @@ int main (int argc,char *argv[]) {
             prm->time.hr,prm->time.mt,prm->time.sc,
             prm->time.us);
 
+    nbaud = prm->txpl / prm->smsep;
+
     /* Identify wide TX beam data with negative beam number */
     if (prm->bmazm == 0) {
-      fprintf(stdout,"%s  %d -%02d  %05d  %02d",str,prm->scan,prm->bmnum,prm->tfreq,iq->seqnum);
+      fprintf(stdout,"%s  %d -%02d  %05d  %02d  %02d",str,prm->scan,prm->bmnum,prm->tfreq,nbaud,iq->seqnum);
     } else {
-      fprintf(stdout,"%s  %d  %02d  %05d  %02d",str,prm->scan,prm->bmnum,prm->tfreq,iq->seqnum);
+      fprintf(stdout,"%s  %d  %02d  %05d  %02d  %02d",str,prm->scan,prm->bmnum,prm->tfreq,nbaud,iq->seqnum);
     }
 
     for (n=0; n < iq->seqnum; n++) {

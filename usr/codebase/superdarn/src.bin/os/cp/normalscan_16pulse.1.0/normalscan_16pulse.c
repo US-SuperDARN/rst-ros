@@ -47,13 +47,13 @@
 #include "tsg.h"
 
 char *ststr=NULL;
-char *dfststr="tst";
+char *dfststr="lab";
 char *libstr="ros";
 
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"normalscan_16pulse 2025/12/15"};
+char progid[80]={"normalscan_16pulse 2026/03/17"};
 char progname[256];
 
 int arg=0;
@@ -122,6 +122,7 @@ int main(int argc,char *argv[])
 
   OptionAdd(&opt, "di",     'x', &discretion);
   OptionAdd(&opt, "wide",   'x', &wide_tx);
+  OptionAdd(&opt, "rfrate", 'i', &rfrate);
   OptionAdd(&opt, "frang",  'i', &frang);
   OptionAdd(&opt, "rsep",   'i', &rsep);
   OptionAdd(&opt, "nrang",  'i', &nrang);
@@ -148,7 +149,7 @@ int main(int argc,char *argv[])
   OptionAdd(&opt, "debug",  'x', &debug);
   OptionAdd(&opt, "-help",  'x', &hlp);        /* just dump some parameters */
   OptionAdd(&opt, "-option",'x', &option);
-  OptionAdd(&opt,"-version",'x',&version);
+  OptionAdd(&opt,"-version",'x', &version);
 
   /* process the commandline; need this for setting errlog port */
   arg=OptionProcess(1,argc,argv,&opt,rst_opterr);
@@ -493,6 +494,7 @@ void usage(void)
     printf("  -stid char: radar string (required)\n");
     printf("    -di     : indicates running during discretionary time\n");
     printf("  -wide     : use a wide transmission beam\n");
+    printf("-rfrate int : set the USRP RF sampling rate (MHz) [5]\n");
     printf("  -baud int : baud to use for Barker phase coded sequence (1,2,3,4,5,7,11,13) [1]\n");
     printf(" -frang int : delay to first range (km) [180]\n");
     printf("  -rsep int : range separation (km) [15]\n");

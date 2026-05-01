@@ -1,5 +1,5 @@
 /* tauscan_11.c
-  =============
+   ============
   Author: R.J.Barnes
    Based on algorithms developed by R.A. Greenwald and K.Oksavik
 */
@@ -47,13 +47,13 @@
 #include "tsg.h"
 
 char *ststr=NULL;
-char *dfststr="tst";
+char *dfststr="lab";
 char *libstr="ros";
 
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"tauscan_11 2025/12/15"};
+char progid[80]={"tauscan_11 2026/03/17"};
 char progname[256];
 
 int arg=0;
@@ -118,6 +118,7 @@ int main(int argc,char *argv[]) {
 
   OptionAdd(&opt, "di",     'x', &discretion);
   OptionAdd(&opt, "wide",   'x', &wide_tx);
+  OptionAdd(&opt, "rfrate", 'i', &rfrate);
   OptionAdd(&opt, "frang",  'i', &frang);
   OptionAdd(&opt, "rsep",   'i', &rsep);
   OptionAdd(&opt, "dt",     'i', &day);

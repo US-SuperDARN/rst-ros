@@ -98,7 +98,7 @@ int SiteRosStart(char *host,char *ststr) {
 
   int n,ltemp,retval;
   const char *str;
-  char *dfststr="tst";
+  char *dfststr="lab";
 
   char *config_dir=NULL;
   char config_filepath[256];
@@ -272,6 +272,14 @@ int SiteRosStart(char *host,char *ststr) {
     fprintf(stderr,"Site Cfg Warning:: 'smsep' setting undefined in site cfg file, using: %d\n",smsep);
   }
 
+  /* Get the USRP RF sampling rate value */
+  if (config_lookup_int(&cfg, "rfrate", &ltemp)) {
+    rfrate = ltemp;
+  } else {
+    rfrate = 5;
+    fprintf(stderr,"Site Cfg Warning:: 'rfrate' setting undefined in site cfg file, using: %d\n",rfrate);
+  }
+
   /* Get the ROS server address */
   if (host !=NULL) {
     strcpy(ros.host,host);
@@ -357,6 +365,8 @@ int SiteRosSetupRadar() {
   TCPIPMsgSend(ros.sock, &temp32, sizeof(int32));
   temp32 = cnum;
   TCPIPMsgSend(ros.sock, &temp32, sizeof(int32));
+  temp32 = rfrate;
+  TCPIPMsgSend(ros.sock, &temp32, sizeof(int32));
   TCPIPMsgRecv(ros.sock, &rmsg, sizeof(struct ROSMsg));
   if (rmsg.status < 0) {
     ErrLog(errlog.sock,"SiteRosSetupRadar","Requested radar channel unavailable. Sleeping 1 second and exiting");
@@ -395,7 +405,7 @@ int SiteRosSetupRadar() {
     ErrLog(errlog.sock,"SiteRosSetupRadar",logtxt);
   }
 
-  sprintf(sharedmemory,"IQBuff_%s_%d_%d",station,rnum,cnum);
+  sprintf(sharedmemory,"IQBuff_%s_%d",station,cnum);
 
   samples=(int16 *)
     ShMemAlloc(sharedmemory,iqbufsize,O_RDWR | O_CREAT,1,&shmemfd);
@@ -629,7 +639,6 @@ int SiteRosTimeSeq(int *ptab) {
   txpl  = tsgprm.txpl;
 
   tprm.index   = index;
-/*  memcpy(&tprm.buf,tsgbuf,sizeof(struct TSGbuf));*/
   tprm.len     = tsgbuf->len;
   tprm.step    = CLOCK_PERIOD;
   tprm.samples = tsgprm.samples;
@@ -703,7 +712,7 @@ int SiteRosIntegrate(int (*lags)[2]) {
 
   int atstp=0;
   int thr=0,lmt=0;
-  int aflg=0,abflg=0;
+  int abflg=0;
   void *dest=NULL; /*AJ*/
   int total_samples=0; /*AJ*/
   int usecs;
@@ -906,7 +915,7 @@ int SiteRosIntegrate(int (*lags)[2]) {
   for (i=0; i<num_transmitters; i++) {
     agcstat = agcstat | (txstatus.AGC[i] << i);
     if (i > 15) {
-      lopwrstat = lopwrstat | (txstatus.LOWPWR[i] << i-16);
+      lopwrstat = lopwrstat | (txstatus.LOWPWR[i] << (i-16));
     }
   }
 
@@ -1083,9 +1092,9 @@ int SiteRosIntegrate(int (*lags)[2]) {
         //if (debug) fprintf(stderr,"%s seq %d :: rngoff %d rxchn %d\n"
         //                          "%s seq %d :: ACFSumPower\n",
         //                   station,nave,rngoff,rxchn,station,nave);
-        aflg = ACFSumPower(&tsgprm,mplgs,lagtable,pwr0,(int16 *)dest,
-                           rngoff,skpnum!=0,roff,ioff,badrng,noise,mxpwr,
-                           seqatten[nave]*atstp,thr,lmt,&abflg);
+        ACFSumPower(&tsgprm,mplgs,lagtable,pwr0,(int16 *)dest,
+                    rngoff,skpnum!=0,roff,ioff,badrng,noise,mxpwr,
+                    seqatten[nave]*atstp,thr,lmt,&abflg);
         //if (debug) fprintf(stderr,"%s seq %d :: rngoff %d rxchn %d\n"
         //                          "%s seq %d :: ACFCalculate acf\n",
         //                   station,nave,rngoff,rxchn,station,nave);
