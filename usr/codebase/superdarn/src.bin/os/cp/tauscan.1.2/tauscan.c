@@ -53,7 +53,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"tauscan 2026/03/17"};
+char progid[80]={"tauscan 2026/05/10"};
 char progname[256];
 
 int arg=0;
@@ -134,7 +134,8 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt, "nowait", 'x', &nowait);
   OptionAdd(&opt, "clrscan",'x', &clrscan);
   OptionAdd(&opt, "clrskip",'i', &clrskip);
-  OptionAdd(&opt, "fixfrq", 'i', &fixfrq);     /* fix the transmit frequency */
+  OptionAdd(&opt, "fixfrq", 'i', &fixfrq);   /* fix the transmit frequency */
+  OptionAdd(&opt, "frqrng", 'i', &frqrng);   /* fix the FCLR window [kHz]  */
   OptionAdd(&opt, "sb",     'i', &sbm);
   OptionAdd(&opt, "eb",     'i', &ebm);
   OptionAdd(&opt, "c",      'i', &cnum);

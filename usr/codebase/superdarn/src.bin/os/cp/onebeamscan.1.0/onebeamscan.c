@@ -60,7 +60,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"onebeamscan 2026/03/17"};
+char progid[80]={"onebeamscan 2026/05/10"};
 char progname[256];
 
 int arg=0;
@@ -158,10 +158,11 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt, "ob",     'i', &obm); /* one beam: i.e., THE beam */
   OptionAdd(&opt, "nb",     'i', &nbm); /* number of beams per "scan"; default is 16 */
   OptionAdd(&opt, "fixfrq", 'i', &fixfrq);   /* fix the transmit frequency */
+  OptionAdd(&opt, "frqrng", 'i', &frqrng);   /* fix the FCLR window [kHz]  */
   OptionAdd(&opt, "cpid",   'i', &cpid);     /* allow user to specify CPID */
-  OptionAdd(&opt, "bm_sync",'x', &bm_sync);  /* flag to enable beam sync    */
-  OptionAdd(&opt, "bmsc",   'i', &bmsc);     /* beam sync period, sec       */
-  OptionAdd(&opt, "bmus",   'i', &bmus);     /* beam sync period, microsec  */
+  OptionAdd(&opt, "bm_sync",'x', &bm_sync);  /* flag to enable beam sync   */
+  OptionAdd(&opt, "bmsc",   'i', &bmsc);     /* beam sync period, sec      */
+  OptionAdd(&opt, "bmus",   'i', &bmus);     /* beam sync period, microsec */
   OptionAdd(&opt, "intsc",  'i', &intsc);
   OptionAdd(&opt, "intus",  'i', &intus);
   OptionAdd(&opt, "setintt",'x', &setintt);
@@ -520,6 +521,7 @@ void usage(void)
   printf("    -bp int : base port\n");
   printf("  -cpid int : set to override control program id\n");
   printf("-fixfrq int : transmit on fixed frequency (kHz)\n");
+  printf("-frqrng int : set the clear frequency search window (kHz)\n");
   printf("-clrscan    : Force clear frequency search at start of scan\n");
   printf("-clrskip int: Minimum number of seconds to skip between clear frequency search\n");
   printf("-nowait     : do not wait at end of scan boundary.\n");

@@ -483,10 +483,10 @@ void usage(void)
     printf("    -sp int : shell port\n");
     printf("    -bp int : base port\n");
     printf("-fixfrq int : transmit on fixed frequency (kHz)\n");
+    printf("-frqrng int : set the clear frequency search window (kHz)\n");
     printf("-nowait     : do not wait at end of scan boundary.\n");
     printf("-clrscan    : Force clear frequency search at start of scan\n");
     printf("-clrskip int: Minimum number of seconds to skip between clear frequency search\n");
-    printf("-frqrng int : set the clear frequency search window (kHz)\n");
     printf("     -c int : channel number for multi-channel radars.\n");
     printf("   -ros char: change the roshost IP address\n");
     printf(" --help     : print this message and quit.\n");

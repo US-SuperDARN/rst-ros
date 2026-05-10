@@ -72,7 +72,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"widetest 2026/03/17"};
+char progid[80]={"widetest 2026/05/10"};
 char progname[256];
 
 int arg=0;
@@ -170,6 +170,7 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt, "sb",     'i', &sbm);
   OptionAdd(&opt, "eb",     'i', &ebm);
   OptionAdd(&opt, "fixfrq", 'i', &fixfrq);   /* fix the transmit frequency  */
+  OptionAdd(&opt, "frqrng", 'i', &frqrng);   /* fix the FCLR window [kHz]   */
   OptionAdd(&opt, "cpid",   'i', &cpid);     /* allow user to specify CPID, *
                                                 e.g., RX-only               */
   OptionAdd(&opt, "rxonly", 'x', &rxonly);   /* RX-only mode                */
@@ -547,6 +548,7 @@ void usage(void)
   printf("    -bp int : base port\n");
   printf("  -cpid int : set to override control program id\n");
   printf("-fixfrq int : transmit on fixed frequency (kHz)\n");
+  printf("-frqrng int : set the clear frequency search window (kHz)\n");
   printf("-nowait     : do not wait at end of scan boundary.\n");
   printf("-clrscan    : Force clear frequency search at start of scan\n");
   printf("-clrskip int: Minimum number of seconds to skip between clear frequency search\n");

@@ -71,7 +71,7 @@ char *dfststr="lab";
 char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
-char progid[80]={"themisscan 2026/03/17"};
+char progid[80]={"themisscan 2026/05/10"};
 char progname[256];
 int arg=0;
 struct OptionData opt;
@@ -163,6 +163,7 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt,"clrscan",'x',&clrscan);
   OptionAdd(&opt,"clrskip",'i',&clrskip);
   OptionAdd(&opt,"fixfrq",'i',&fixfrq);     /* fix the transmit frequency */
+  OptionAdd(&opt,"frqrng",'i',&frqrng);     /* fix the FCLR window [kHz]  */
   OptionAdd(&opt,"camp",  'i',&cbm);        /* camping beam number */
   OptionAdd(&opt,"c",     'i',&cnum);
   OptionAdd(&opt,"ros",   't',&roshost);    /* Set the roshost IP address */
@@ -551,6 +552,7 @@ void usage(void)
   printf("-clrscan    : Force clear frequency search at start of scan\n");
   printf("-clrskip int: Minimum number of seconds to skip between clear frequency search\n");
   printf("-fixfrq int : transmit on fixed frequency (kHz)\n");
+  printf("-frqrng int : set the clear frequency search window (kHz)\n");
   printf("     -c int : channel number for multi-channel radars.\n");
   printf("   -ros char: change the roshost IP address\n");
   printf(" --help     : print this message and quit.\n");

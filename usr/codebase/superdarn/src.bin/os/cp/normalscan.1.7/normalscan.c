@@ -69,7 +69,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"normalscan 2026/04/30"};
+char progid[80]={"normalscan 2026/05/10"};
 char progname[256];
 
 int arg=0;
@@ -166,7 +166,7 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt, "sb",     'i', &sbm);
   OptionAdd(&opt, "eb",     'i', &ebm);
   OptionAdd(&opt, "fixfrq", 'i', &fixfrq);   /* fix the transmit frequency  */
-  OptionAdd(&opt, "frqrng", 'i', &frqrng);   /* range of transmit frequencies */
+  OptionAdd(&opt, "frqrng", 'i', &frqrng);   /* fix the FCLR window [kHz]   */
   OptionAdd(&opt, "cpid",   'i', &cpid);     /* allow user to specify CPID, *
                                                 e.g., RX-only               */
   OptionAdd(&opt, "rxonly", 'x', &rxonly);   /* RX-only mode                */

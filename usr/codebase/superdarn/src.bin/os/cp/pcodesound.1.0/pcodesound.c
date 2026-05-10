@@ -176,7 +176,7 @@ int main(int argc,char *argv[])
   OptionAdd(&opt, "sb",     'i', &sbm);
   OptionAdd(&opt, "eb",     'i', &ebm);
   OptionAdd(&opt, "fixfrq", 'i', &fixfrq);     /* fix the transmit frequency */
-  OptionAdd(&opt, "frqrng", 'i', &frqrng);     /* fix the FCLR window [kHz] */
+  OptionAdd(&opt, "frqrng", 'i', &frqrng);     /* fix the FCLR window [kHz]  */
   OptionAdd(&opt, "sfrqrng",'i', &snd_frqrng); /* sounding FCLR window [kHz] */
   OptionAdd(&opt, "sndsc",  'i', &snd_sc);     /* sounding duration per scan [sec] */
   OptionAdd(&opt, "iqdat",  'x', &iq_flg);     /* store IQ samples */

@@ -59,7 +59,7 @@ char *dfststr="lab";
 char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
-char progid[80]={"interleavescan 2026/04/30"};
+char progid[80]={"interleavescan 2026/05/10"};
 char progname[256];
 int arg=0;
 struct OptionData opt;
@@ -183,7 +183,7 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt,"clrscan",'x',&clrscan);
   OptionAdd(&opt,"clrskip",'i',&clrskip);
   OptionAdd(&opt,"fixfrq",'i',&fixfrq);     /* fix the transmit frequency */
-  OptionAdd(&opt,"frqrng",'i',&frqrng);     /* range of transmit frequencies */
+  OptionAdd(&opt,"frqrng",'i',&frqrng);     /* fix the FCLR window [kHz]  */
   OptionAdd(&opt,"bm_sync",'x',&bm_sync);   /* flag to enable beam sync   */
   OptionAdd(&opt,"bmsc",  'i',&bmsc);       /* beam sync period, sec      */
   OptionAdd(&opt,"bmus",  'i',&bmus);       /* beam sync period, microsec */

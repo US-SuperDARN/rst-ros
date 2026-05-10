@@ -78,7 +78,7 @@ int rst_opterr(char *txt) {
 
 
 int main(int argc,char *argv[]) {
-  char progid[80]={"uafscan 2026/03/17"};
+  char progid[80]={"uafscan 2026/05/10"};
   char progname[256]="uafscan";
   char modestr[32];
 
@@ -178,6 +178,7 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt, "df", 'i', &dfrq);
   OptionAdd(&opt, "nf", 'i', &nfrq);
   OptionAdd(&opt, "fixfrq", 'i', &fixfrq);
+  OptionAdd(&opt, "frqrng", 'i', &frqrng);
   OptionAdd(&opt, "xcf", 'i', &xcnt);
   OptionAdd(&opt, "ep", 'i', &errlog.port);
   OptionAdd(&opt, "sp", 'i', &shell.port);
@@ -908,6 +909,7 @@ void usage(void)
   printf("    -df int : Day time transmit frequency in kHz\n");
   printf("    -nf int : Night time transmit frequency in kHz\n");
   printf("-fixfrq int : Fixes the transmit frequency of the radar to one frequency, in kHz\n");
+  printf("-frqrng int : Set the clear frequency search window (kHz)\n");
   printf("   -xcf int : Enable xcf, -xcf 1: for all sequences -xcf 2: for every other sequence, etc...\n");
   printf("    -ep int : Local TCP port for errlog process\n");
   printf("    -sp int : Local TCP port for radarshell process\n");
