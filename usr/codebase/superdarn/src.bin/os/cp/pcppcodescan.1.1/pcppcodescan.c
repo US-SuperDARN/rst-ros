@@ -74,7 +74,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"pcppcodescan 2026/03/17"};
+char progid[80]={"pcppcodescan 2026/06/03"};
 char progname[256];
 
 int arg=0;
@@ -370,15 +370,6 @@ int main(int argc,char *argv[]) {
       continue;
     }
 
-    TimeReadClock(&yr,&mo,&dy,&hr,&mt,&sc,&us);
-    if (OpsReOpen(1,59,59) !=0) {
-      ErrLog(errlog.sock,progname,"Opening new files.");
-      for (n=0;n<tnum;n++) {
-        RMsgSndClose(task[n].sock);
-        RMsgSndOpen(task[n].sock,strlen( (char *) command),command);
-      }
-    }
-
     scan=1;
 
     xcf=1;      /*  FHR unable to do xcf at this time  21Dec2011  */
@@ -441,6 +432,16 @@ int main(int argc,char *argv[]) {
       FitSetAlgorithm(fit,"fitacf2");
 
       /* write out data here */
+      if (iBeam == 0) {
+        if (OpsReOpen(2,0,0) !=0) {
+          ErrLog(errlog.sock,progname,"Opening new files.");
+          for (n=0; n<tnum; n++) {
+            RMsgSndClose(task[n].sock);
+            RMsgSndOpen(task[n].sock,strlen((char *)command),command);
+          }
+        }
+      }
+
       msg.num=0;
       msg.tsize=0;
       tmpbuf=RadarParmFlatten(prm,&tmpsze);

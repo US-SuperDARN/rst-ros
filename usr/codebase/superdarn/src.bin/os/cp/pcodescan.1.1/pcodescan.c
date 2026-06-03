@@ -54,7 +54,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"pcodescan 2026/05/10"};
+char progid[80]={"pcodescan 2026/06/03"};
 char progname[256];
 
 int arg=0;
@@ -386,15 +386,6 @@ int main(int argc,char *argv[]) {
       continue;
     }
 
-    TimeReadClock(&yr,&mo,&dy,&hr,&mt,&sc,&us);
-    if (OpsReOpen(1,59,59) !=0) {
-      ErrLog(errlog.sock,progname,"Opening new files.");
-      for (n=0; n<tnum; n++) {
-        RMsgSndClose(task[n].sock);
-        RMsgSndOpen(task[n].sock,strlen((char *)command),command);
-      }
-    }
-
     scan = 1; /* scan flag */
 
     if (clrscan) startup=1;
@@ -463,6 +454,15 @@ int main(int argc,char *argv[]) {
       FitSetAlgorithm(fit,"fitacf2");
 
       /* write out data here */
+      if (iBeam == 0) {
+        if (OpsReOpen(2,0,0) !=0) {
+          ErrLog(errlog.sock,progname,"Opening new files.");
+          for (n=0; n<tnum; n++) {
+            RMsgSndClose(task[n].sock);
+            RMsgSndOpen(task[n].sock,strlen((char *)command),command);
+          }
+        }
+      }
 
       msg.num   = 0;
       msg.tsize = 0;

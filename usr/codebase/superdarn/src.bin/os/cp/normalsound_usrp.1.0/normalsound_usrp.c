@@ -55,7 +55,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"normalsound_usrp 2026/03/26"};
+char progid[80]={"normalsound_usrp 2026/06/03"};
 char progname[256];
 
 int arg=0;
@@ -410,15 +410,6 @@ int main(int argc,char *argv[]) {
       continue;
     }
 
-    TimeReadClock(&yr,&mo,&dy,&hr,&mt,&sc,&us);
-    if (OpsReOpen(1,59,59) !=0) {
-      ErrLog(errlog.sock,progname,"Opening new files.");
-      for (n=0;n<tnum;n++) {
-        RMsgSndClose(task[n].sock);
-        RMsgSndOpen(task[n].sock,strlen( (char *) command),command);
-      }
-    }
-
     if (clrscan) startup=1;
     if (xcnt>0) {
       cnt++;
@@ -488,6 +479,16 @@ int main(int argc,char *argv[]) {
       if (snd_flg) {
         OpsBuildSnd(snd,prm,fit);
         OpsWriteSnd(errlog.sock, progname, snd, ststr);
+      }
+
+      if (iBeam == 0) {
+        if (OpsReOpen(2,0,0) !=0) {
+          ErrLog(errlog.sock,progname,"Opening new files.");
+          for (n=0; n<tnum; n++) {
+            RMsgSndClose(task[n].sock);
+            RMsgSndOpen(task[n].sock,strlen((char *)command),command);
+          }
+        }
       }
 
       msg.num=0;
