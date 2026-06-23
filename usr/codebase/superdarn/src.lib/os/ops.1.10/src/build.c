@@ -101,6 +101,7 @@ void OpsBuildPrm(struct RadarParm *prm,int *ptab,int (*lags)[2]) {
   offset=site->maxbeam/2.0-0.5;
   prm->bmazm=site->boresite+site->bmsep*(bmnum-offset);
   prm->ifmode = ifmode;
+  prm->wide  = wide_tx;
   prm->xcf   = xcf;
   prm->tfreq = tfreq;
   prm->scan  = scan;
