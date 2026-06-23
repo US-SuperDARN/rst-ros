@@ -78,7 +78,7 @@ int rst_opterr(char *txt) {
 
 
 int main(int argc,char *argv[]) {
-  char progid[80]={"uafscan 2026/06/03"};
+  char progid[80]={"uafscan 2026/06/23"};
   char progname[256]="uafscan";
   char modestr[32];
 
@@ -161,7 +161,7 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt, "debug", 'x', &debug);
   OptionAdd(&opt, "test", 'x', &test);
   OptionAdd(&opt, "di", 'x', &discretion);
-  OptionAdd(&opt, "wide", 'x', &wide_tx);
+  OptionAdd(&opt, "wide", 'x', &widetx);
   OptionAdd(&opt, "rfrate", 'i', &rfrate);
   OptionAdd(&opt, "fast", 'x', &fast);
   OptionAdd(&opt, "nowait", 'x', &nowait);

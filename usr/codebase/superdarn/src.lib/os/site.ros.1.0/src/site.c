@@ -512,8 +512,8 @@ int SiteRosStartIntt(int sec,int usec) {
   rprm.buffer_index        = 0;
   strncpy(rprm.name,station,10);
 
-  if (wide_tx) rprm.tbeamwidth = 60.0;
-  else         rprm.tbeamwidth = 3.24;
+  if (widetx) rprm.tbeamwidth = 60.0;
+  else        rprm.tbeamwidth = 3.24;
 
   if (debug) ErrLog(errlog.sock,"SiteRosStartIntt","Sending SET_PARAMETERS");
   smsg.type = SET_PARAMETERS;
@@ -801,8 +801,8 @@ int SiteRosIntegrate(int (*lags)[2]) {
   rprm.buffer_index        = 0;
   strncpy(rprm.name,station,10);
 
-  if (wide_tx) rprm.tbeamwidth = 60.0;
-  else         rprm.tbeamwidth = 3.24;
+  if (widetx) rprm.tbeamwidth = 60.0;
+  else        rprm.tbeamwidth = 3.24;
 
   usecs = (int)(rprm.number_of_samples/rprm.baseband_samplerate*1E6);
 

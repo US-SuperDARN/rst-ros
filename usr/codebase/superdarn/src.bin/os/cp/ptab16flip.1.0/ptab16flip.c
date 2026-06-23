@@ -53,7 +53,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"ptab16flip 2026/06/03"};
+char progid[80]={"ptab16flip 2026/06/23"};
 char progname[256];
 
 int arg=0;
@@ -124,7 +124,7 @@ int main(int argc,char *argv[])
   /* ========= PROCESS COMMAND LINE ARGUMENTS ============= */
 
   OptionAdd(&opt, "di",     'x', &discretion);
-  OptionAdd(&opt, "wide",   'x', &wide_tx);
+  OptionAdd(&opt, "wide",   'x', &widetx);
   OptionAdd(&opt, "rfrate", 'i', &rfrate);
   OptionAdd(&opt, "dt",     'i', &day);
   OptionAdd(&opt, "nt",     'i', &night);

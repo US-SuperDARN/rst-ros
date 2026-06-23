@@ -152,7 +152,7 @@ extern int stfrq;
 extern int frqrng;
 
 extern int rfrate;
-extern int wide_tx;
+extern int widetx;
 
 /* lists for parameters across a scan, need to send to usrp_server for swings to work.. */
 extern int32_t scan_clrfreq_bandwidth_list[MAX_INTEGRATIONS_PER_SCAN];

@@ -72,7 +72,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"widetest 2026/06/03"};
+char progid[80]={"widetest 2026/06/23"};
 char progname[256];
 
 int arg=0;
@@ -466,7 +466,7 @@ int main(int argc,char *argv[]) {
       msg.tsize = 0;
 
       /* Set bmazm to zero for wide TX beam */
-      if (wide_tx) prm->bmazm = 0.0;
+      if (widetx) prm->bmazm = 0.0;
 
       tmpbuf = RadarParmFlatten(prm,&tmpsze);
       RMsgSndAdd(&msg,tmpsze,tmpbuf, PRM_TYPE,0);
@@ -505,10 +505,10 @@ int main(int argc,char *argv[]) {
     } while (1);
 
     if (flipflop == 0) {
-      wide_tx = 1;
+      widetx = 1;
       flipflop = 1;
     } else {
-      wide_tx = 0;
+      widetx = 0;
       flipflop = 0;
     }
 
