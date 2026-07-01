@@ -499,6 +499,7 @@ int SiteRosStartIntt(int sec,int usec) {
     ErrLog(errlog.sock,"SiteRosStartIntt",logtxt);
   }
 
+  rprm.cpid  = cp;
   rprm.tbeam = bmnum;
   rprm.tfreq = 12000;
   rprm.rbeam = bmnum;
@@ -510,10 +511,8 @@ int SiteRosStartIntt(int sec,int usec) {
   rprm.number_of_samples   = total_samples + nbaud + 10;
   rprm.priority            = cnum;
   rprm.buffer_index        = 0;
+  rprm.widetx              = widetx;
   strncpy(rprm.name,station,10);
-
-  if (widetx) rprm.tbeamwidth = 60.0;
-  else        rprm.tbeamwidth = 3.24;
 
   if (debug) ErrLog(errlog.sock,"SiteRosStartIntt","Sending SET_PARAMETERS");
   smsg.type = SET_PARAMETERS;
@@ -788,6 +787,7 @@ int SiteRosIntegrate(int (*lags)[2]) {
 
   seqbadtr[nave].num = 0;
 
+  rprm.cpid  = cp;
   rprm.tbeam = bmnum;
   rprm.tfreq = tfreq;
   rprm.rbeam = bmnum;
@@ -799,10 +799,8 @@ int SiteRosIntegrate(int (*lags)[2]) {
   rprm.number_of_samples   = total_samples + nbaud + 10;
   rprm.priority            = cnum;
   rprm.buffer_index        = 0;
+  rprm.widetx              = widetx;
   strncpy(rprm.name,station,10);
-
-  if (widetx) rprm.tbeamwidth = 60.0;
-  else        rprm.tbeamwidth = 3.24;
 
   usecs = (int)(rprm.number_of_samples/rprm.baseband_samplerate*1E6);
 
