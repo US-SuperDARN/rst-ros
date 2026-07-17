@@ -55,7 +55,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"normalsound_usrp 2026/06/23"};
+char progid[80]={"normalsound_usrp 2026/07/17"};
 char progname[256];
 
 int arg=0;
@@ -100,6 +100,10 @@ int main(int argc,char *argv[]) {
   int nbm = 16;    /* default number of "beams" */
   int total_scan_usecs=0;
   int total_integration_usecs=0;
+
+  char *bmstr=NULL;
+  int tmp_bm=0;
+  int tmp_bms[64];
 
   int bufsc=3;    /* a buffer at the end of scan; historically this has   */
   int bufus=0;    /*   been set to 3.0s to account for what???            */
@@ -155,6 +159,7 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt, "nb",     'i', &nbm); /* number of beams per "scan"; default is 16 */
   OptionAdd(&opt, "sb",     'i', &sbm);
   OptionAdd(&opt, "eb",     'i', &ebm);
+  OptionAdd(&opt, "bms",    't', &bmstr);      /* comma-separated list of beams */
   OptionAdd(&opt, "snd",    'x', &snd_flg);    /* write snd data file */
   OptionAdd(&opt, "sfrqrng",'i', &snd_frqrng); /* sounding FCLR window [kHz] */
   OptionAdd(&opt, "bm_sync",'x', &bm_sync);    /* flag to enable beam sync    */
@@ -275,28 +280,62 @@ int main(int argc,char *argv[]) {
   }
 
   /* Create sounding beam list */
-  snd_bms_tot = abs(sbm-ebm)+1;
-  snd_bms = malloc(snd_bms_tot*sizeof(int));
-  iBeam = 0;
-
-  /* Find all even beams in range first */
-  current_beam = sbm;
-  for (i=0; i < snd_bms_tot; i++) {
-    if ((current_beam % 2) == 0) {
-      snd_bms[iBeam] = current_beam;
-      iBeam += 1;
+  if (bmstr != NULL) {
+    /* Parse comma-separated beam list */
+    char *tok;
+    tok = strtok(bmstr, ",");
+    while (tok != NULL) {
+      tmp_bm = atoi(tok);
+      if (tmp_bm >= 0 && tmp_bm < site->maxbeam) {
+        tmp_bms[snd_bms_tot] = tmp_bm;
+        snd_bms_tot += 1;
+      }
+      tok = strtok(NULL, ",");
     }
-    current_beam += backward ? -1:1;
+
+    snd_bms = malloc(snd_bms_tot*sizeof(int));
+    for (i=0; i< snd_bms_tot; i++) {
+      snd_bms[i] = tmp_bms[i];
+    }
+  } else {
+    /* Check for valid start and end beams */
+    if (sbm < 0 || sbm >= site->maxbeam) {
+      fprintf(stderr,"Error: must provide valid start beam (-sb %d)\n",sbm);
+      exit(-1);
+    } else if (ebm < 0 || ebm >= site->maxbeam) {
+      fprintf(stderr,"Error: must provide valid end beam (-eb %d)\n",ebm);
+      exit(-1);
+    }
+
+    /* Build even/odd beam list from start and end beams */
+    snd_bms_tot = abs(sbm-ebm)+1;
+    snd_bms = malloc(snd_bms_tot*sizeof(int));
+    iBeam = 0;
+
+    /* Find all even beams in range first */
+    current_beam = sbm;
+    for (i=0; i < snd_bms_tot; i++) {
+      if ((current_beam % 2) == 0) {
+        snd_bms[iBeam] = current_beam;
+        iBeam += 1;
+      }
+      current_beam += backward ? -1:1;
+    }
+
+    /* Next find all odd beams in range */
+    current_beam = sbm;
+    for (i=0; i < snd_bms_tot; i++) {
+      if ((current_beam % 2) == 1) {
+        snd_bms[iBeam] = current_beam;
+        iBeam += 1;
+      }
+      current_beam += backward ? -1:1;
+    }
   }
 
-  /* Next find all odd beams in range */
-  current_beam = sbm;
-  for (i=0; i < snd_bms_tot; i++) {
-    if ((current_beam % 2) == 1) {
-      snd_bms[iBeam] = current_beam;
-      iBeam += 1;
-    }
-    current_beam += backward ? -1:1;
+  if (snd_bms_tot == 0) {
+    fprintf(stderr,"Error: must provide at least one valid beam number.\n");
+    exit(-1);
   }
 
   /* Automatically calculate the integration times */
@@ -564,6 +603,7 @@ void usage(void)
     printf("    -nb int : number of beams per scan [16]\n");
     printf("    -sb int : starting beam\n");
     printf("    -eb int : ending beam\n");
+    printf("   -bms char: comma-separated list of beam numbers (overrides -sb and -eb)\n");
     printf("-bm_sync    : set to enable beam syncing.\n");
     printf("  -bmsc int : beam syncing interval seconds.\n");
     printf("  -bmus int : beam syncing interval microseconds.\n");
