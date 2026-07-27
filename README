@@ -82,7 +82,7 @@ Unpack and install the CDF software:
     sudo make INSTALLDIR=/usr/local/cdf install
 
 3. Load the RST-ROS environment variables by adding the following lines
-to the end of ".bashrc":
+to the start of ".bashrc":
 
     export RSTPATH="$HOME/repos/rst-ros"
     source $RSTPATH/.profile.bash
