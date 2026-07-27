@@ -1,6 +1,6 @@
 #!/bin/bash
 
-radar='cve'
+radar='lab'
 
 # dummy radar server
 radar &

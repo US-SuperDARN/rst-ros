@@ -2,8 +2,6 @@
 
 pkill -KILL -f srr_watchdog.py
 
-#/home/radar_user/repos/SuperDARN_UHD_Server/srr.py stop
-
 killall -INT schedule
 sleep 10
 killall -9 schedule
