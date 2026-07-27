@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Load site-specific radar settings
+. $RSTPATH/site_settings
+
 radar=$RADAR_NAME
 ch1=$RADAR_CH1
 ch2=$RADAR_CH2

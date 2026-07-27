@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Load site-specific radar settings
+. $RSTPATH/site_settings
+
 pkill -KILL -f srr_watchdog.py
 
 if [ "$MAIN_RADAR" = "true" ]; then
