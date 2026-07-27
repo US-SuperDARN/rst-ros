@@ -1,11 +1,8 @@
 #!/bin/bash
 
-radar='lab'
-ch1='a'
-ch2='b'
-
-TWO_RADAR='false'
-TWO_CHANNEL='false'
+radar=$RADAR_NAME
+ch1=$RADAR_CH1
+ch2=$RADAR_CH2
 
 # critical tasks
 
@@ -48,24 +45,27 @@ if [ "$TWO_CHANNEL" = "true" ]; then
   rtserver -rp 42104 -ep 42000 -tp 1025 &
 fi
 
-/home/$USER/repos/SuperDARN_UHD_Server/tools/optimize_network.sh
+if [ "$MAIN_RADAR" = "true" ]; then
+  /home/$USER/repos/SuperDARN_UHD_Server/tools/optimize_network.sh
 
-# Start USRP drivers and CUDA driver on second radar:
-if [ "$TWO_RADAR" = "true" ]; then
-  RADAR_2=192.168.100.2
-  ssh $USER@$RADAR_2 '/home/$USER/repos/SuperDARN_UHD_Server/tools/optimize_network.sh' &
-  ssh $USER@$RADAR_2 'python3 /home/$USER/repos/SuperDARN_UHD_Server/tools/srr_watchdog.py &' &
-  sleep 10
+  # Start USRP drivers and CUDA driver on second radar:
+  if [ "$TWO_RADAR" = "true" ]; then
+    RADAR_2=192.168.100.2
+    ssh $USER@$RADAR_2 '/home/$USER/repos/SuperDARN_UHD_Server/tools/optimize_network.sh' &
+    ssh $USER@$RADAR_2 'python3 /home/$USER/repos/SuperDARN_UHD_Server/tools/srr_watchdog.py &' &
+    sleep 10
+  fi
+
+  python3 /home/$USER/repos/SuperDARN_UHD_Server/tools/srr_watchdog.py server &
+
+  sleep 25
+
+  if [ "$TWO_RADAR" = "true" ]; then
+    ssh $USER@$RADAR_2 '/home/$USER/repos/rst-ros/script/start.radar &' &
+  fi
 fi
 
-python3 /home/$USER/repos/SuperDARN_UHD_Server/tools/srr_watchdog.py server &
-
-sleep 25
-
-if [ "$TWO_RADAR" = "true" ]; then
-  ssh $USER@$RADAR_2 '/home/$USER/repos/rst-ros/script/start.remote &' &
-  sleep 5
-fi
+sleep 5
 
 echo "Starting scheduler"
 schedule -name ${radar}.${ch1} /data/ros/scd/${radar}.${ch1}.scd &

@@ -18,3 +18,4 @@ fi
 
 . $RSTPATH/.profile/idl.bash
 
+. $RSTPATH/site_settings

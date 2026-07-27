@@ -1,16 +1,16 @@
 #!/bin/bash
 
-TWO_RADAR='false'
-
-# Kill USRP drivers and CUDA driver on second radar:
-if [ "$TWO_RADAR" = "true" ]; then
-  RADAR_2=192.168.100.2
-  ssh $USER@$RADAR_2 '/home/$USER/repos/rst-ros/script/stop.remote &' &
-fi
-
 pkill -KILL -f srr_watchdog.py
 
-/home/$USER/repos/SuperDARN_UHD_Server/srr.py stop
+if [ "$MAIN_RADAR" = "true" ]; then
+  # Kill USRP drivers and CUDA driver on second radar:
+  if [ "$TWO_RADAR" = "true" ]; then
+    RADAR_2=192.168.100.2
+    ssh $USER@$RADAR_2 '/home/$USER/repos/rst-ros/script/stop.radar &' &
+  fi
+
+  /home/$USER/repos/SuperDARN_UHD_Server/srr.py stop
+fi
 
 killall -INT schedule
 sleep 10
