@@ -55,10 +55,8 @@ if [ "$TWO_RADAR" = "true" ]; then
   RADAR_2=192.168.100.2
   ssh $USER@$RADAR_2 '/home/$USER/repos/SuperDARN_UHD_Server/tools/optimize_network.sh' &
   ssh $USER@$RADAR_2 'python3 /home/$USER/repos/SuperDARN_UHD_Server/tools/srr_watchdog.py &' &
-
   sleep 10
 fi
-
 
 python3 /home/$USER/repos/SuperDARN_UHD_Server/tools/srr_watchdog.py server &
 
@@ -66,7 +64,6 @@ sleep 25
 
 if [ "$TWO_RADAR" = "true" ]; then
   ssh $USER@$RADAR_2 '/home/$USER/repos/rst-ros/script/start.remote &' &
-
   sleep 5
 fi
 
