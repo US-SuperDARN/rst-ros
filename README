@@ -84,7 +84,7 @@ Unpack and install the CDF software:
 3. Load the RST-ROS environment variables by adding the following lines
 to the start of ".bashrc":
 
-    export RSTPATH="$HOME/repos/rst-ros"
+    export RSTPATH="/home/$USER/repos/rst-ros"
     source $RSTPATH/.profile.bash
 
 Refresh the profile to make sure the environment variables are up to date
