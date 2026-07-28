@@ -1,0 +1,10 @@
+export RADAR_NAME='kod'     # three-letter radar code
+export RADAR_CH1='d'        # single-letter channel 1 code (a-d)
+export RADAR_CH2='c'        # single-letter channel 2 code (a-d)
+
+export MAIN_RADAR='true'    # true if main radar computer, false if remote computer
+export TWO_CHANNEL='false'  # true if two channels active, false for single channel
+export TWO_RADAR='false'    # true if dual radar site, false if single radar
+
+export RT_PORT1='1024'      # local real-time port for channel 1
+export RT_PORT2='1025'      # local real-time port for channel 2
