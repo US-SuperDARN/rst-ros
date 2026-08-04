@@ -90,8 +90,7 @@ struct ControlPRM {
   int32 channel;  /* required: DO NOT SET MANUALLY */
   int32 cpid;     /* required: control program ID */
   int32 widetx;   /* required: whether to use wide (1) or narrow (0) TX beam */
-  int32 priority; /* optional: valid 0-99: lower value higher
-                     priority when running multiple operational programs */
+  int32 rxonly;   /* required: whether to use RX-only (1) or TX+RX (0) */
 
   int32 tbeam; /* required: valid 0-31: defines standard look directions */ 
   uint32 tbeamcode; /* optional: used for special beam 

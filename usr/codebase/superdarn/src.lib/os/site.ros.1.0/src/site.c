@@ -509,9 +509,9 @@ int SiteRosStartIntt(int sec,int usec) {
   rprm.filter_bandwidth    = rprm.baseband_samplerate;
   rprm.match_filter        = dmatch;
   rprm.number_of_samples   = total_samples + nbaud + 10;
-  rprm.priority            = cnum;
   rprm.buffer_index        = 0;
   rprm.widetx              = widetx;
+  rprm.rxonly              = rxonly;
   strncpy(rprm.name,station,10);
 
   if (debug) ErrLog(errlog.sock,"SiteRosStartIntt","Sending SET_PARAMETERS");
@@ -797,9 +797,9 @@ int SiteRosIntegrate(int (*lags)[2]) {
   rprm.filter_bandwidth    = rprm.baseband_samplerate;
   rprm.match_filter        = dmatch;
   rprm.number_of_samples   = total_samples + nbaud + 10;
-  rprm.priority            = cnum;
   rprm.buffer_index        = 0;
   rprm.widetx              = widetx;
+  rprm.rxonly              = rxonly;
   strncpy(rprm.name,station,10);
 
   usecs = (int)(rprm.number_of_samples/rprm.baseband_samplerate*1E6);

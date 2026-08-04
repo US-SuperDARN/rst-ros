@@ -48,7 +48,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"noopscan 2026/03/17"};
+char progid[80]={"noopscan 2026/08/04"};
 char progname[256];
 
 int arg=0;
@@ -75,7 +75,6 @@ int main(int argc,char *argv[]) {
   unsigned char fast=0;
   unsigned char discretion=0;
   int cpid=0;
-  int rxonly=0;
   int setintt=0;  /* flag to override auto-calc of integration time */
 
   /* Variables for controlling clear frequency search */
@@ -135,7 +134,6 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt, "fixfrq", 'i', &fixfrq);   /* fix the transmit frequency  */
   OptionAdd(&opt, "cpid",   'i', &cpid);     /* allow user to specify CPID, *
                                                 e.g., RX-only               */
-  OptionAdd(&opt, "rxonly", 'x', &rxonly);   /* RX-only mode                */
   OptionAdd(&opt, "bm_sync",'x', &bm_sync);  /* flag to enable beam sync    */
   OptionAdd(&opt, "bmsc",   'i', &bmsc);     /* beam sync period, sec       */
   OptionAdd(&opt, "bmus",   'i', &bmus);     /* beam sync period, microsec  */
@@ -276,7 +274,6 @@ void usage(void)
   printf("-nowait     : do not wait at end of scan boundary.\n");
   printf("-clrscan    : Force clear frequency search at start of scan\n");
   printf("-clrskip int: Minimum number of seconds to skip between clear frequency search\n");
-  printf("-rxonly     : bistatic RX only mode.\n");
   printf("-bm_sync    : set to enable beam syncing.\n");
   printf("  -bmsc int : beam syncing interval seconds.\n");
   printf("  -bmus int : beam syncing interval microseconds.\n");

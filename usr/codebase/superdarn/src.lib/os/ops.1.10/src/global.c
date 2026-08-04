@@ -146,6 +146,7 @@ int frqrng=300;
 
 int rfrate=5;
 int widetx=0;
+int rxonly=0;
 
 
 /* raw I&Q sample buffer */

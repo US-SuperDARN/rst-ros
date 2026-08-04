@@ -50,7 +50,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"soundingscan 2026/06/23"};
+char progid[80]={"soundingscan 2026/08/04"};
 char progname[256];
 
 int arg=0;
@@ -80,7 +80,6 @@ int main(int argc,char *argv[]) {
   unsigned char fast=0;
   unsigned char discretion=0;
   int cpid=0;
-  int rxonly=0;
   int setintt=0;  /* flag to override auto-calc of integration time */
 
   /* Variables for controlling clear frequency search */
