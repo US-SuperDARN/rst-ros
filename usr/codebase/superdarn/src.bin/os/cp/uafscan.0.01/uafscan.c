@@ -78,7 +78,7 @@ int rst_opterr(char *txt) {
 
 
 int main(int argc,char *argv[]) {
-  char progid[80]={"uafscan 2026/06/23"};
+  char progid[80]={"uafscan 2026/08/05"};
   char progname[256]="uafscan";
   char modestr[32];
 
@@ -163,6 +163,7 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt, "di", 'x', &discretion);
   OptionAdd(&opt, "wide", 'x', &widetx);
   OptionAdd(&opt, "rfrate", 'i', &rfrate);
+  OptionAdd(&opt, "rxonly", 'x', &rxonly);
   OptionAdd(&opt, "fast", 'x', &fast);
   OptionAdd(&opt, "nowait", 'x', &nowait);
   OptionAdd(&opt, "onesec", 'x', &onesec);
@@ -899,6 +900,7 @@ void usage(void)
   printf("-nowait     : Do not wait for minute scan boundary\n");
   printf("-onesec     : Use one second integration times\n");
   printf("-clrscan    : Force clear frequency search at start of scan\n");
+  printf("-rxonly     : Bistatic RX only mode.\n");
   printf("-rfrate int : Set the USRP RF sampling rate (MHz) [5]\n");
   printf("  -baud int : Baud to use for phasecoded sequences\n");
   printf("   -tau int : Lag spacing in usecs\n");
