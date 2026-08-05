@@ -60,7 +60,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"onebeamscan 2026/06/23"};
+char progid[80]={"onebeamscan 2026/08/05"};
 char progname[256];
 
 int arg=0;
@@ -160,6 +160,7 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt, "fixfrq", 'i', &fixfrq);   /* fix the transmit frequency */
   OptionAdd(&opt, "frqrng", 'i', &frqrng);   /* fix the FCLR window [kHz]  */
   OptionAdd(&opt, "cpid",   'i', &cpid);     /* allow user to specify CPID */
+  OptionAdd(&opt, "rxonly", 'x', &rxonly);   /* RX-only mode                */
   OptionAdd(&opt, "bm_sync",'x', &bm_sync);  /* flag to enable beam sync   */
   OptionAdd(&opt, "bmsc",   'i', &bmsc);     /* beam sync period, sec      */
   OptionAdd(&opt, "bmus",   'i', &bmus);     /* beam sync period, microsec */
@@ -222,8 +223,13 @@ int main(int argc,char *argv[]) {
   /* reprocess the commandline since some things are reset by SiteStart */
   arg = OptionProcess(1, argc, argv, &opt, NULL);
 
-  if (fast) sprintf(progname,"onebeamscan (fast)");
-  else sprintf(progname,"onebeamscan");
+  if (rxonly) {
+    strcpy(progid, "rxonlybistaticonebeamscan; BISTATIC");
+    strcpy(progname, "rxonlybistaticonebeamscan; BISTATIC");
+  } else {
+    if (fast) sprintf(progname,"onebeamscan (fast)");
+    else sprintf(progname,"onebeamscan");
+  }
 
   printf("Station ID: %s  %d\n", ststr, stid);
   strncpy(combf, progid, 80);
@@ -506,7 +512,7 @@ void usage(void)
   printf("command-line options:\n");
   printf("  -stid char: radar string (required)\n");
   printf("    -di     : indicates running during discretionary time\n");
-  printf("   -wide    : use a wide transmission beam\n");
+  printf("  -wide     : use a wide transmission beam\n");
   printf("  -fast     : 1-min scan (2-min default)\n");
   printf("-rfrate int : set the USRP RF sampling rate (MHz) [5]\n");
   printf(" -frang int : delay to first range (km) [180]\n");
@@ -528,6 +534,7 @@ void usage(void)
   printf("-nowait     : do not wait at end of scan boundary.\n");
   printf("    -ob int : THE one beam [7]\n");
   printf("    -nb int : number of beams per scan [16]\n");
+  printf("-rxonly     : bistatic RX only mode.\n");
   printf("-bm_sync    : set to enable beam syncing.\n");
   printf("  -bmsc int : beam syncing interval seconds.\n");
   printf("  -bmus int : beam syncing interval microseconds.\n");
