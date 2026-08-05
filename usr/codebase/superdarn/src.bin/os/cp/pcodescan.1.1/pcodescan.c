@@ -54,7 +54,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"pcodescan 2026/08/04"};
+char progid[80]={"pcodescan 2026/08/05"};
 char progname[256];
 
 int arg=0;
@@ -231,7 +231,6 @@ int main(int argc,char *argv[]) {
   if (rxonly) {
     strcpy(progid, "rxonlybistaticpcodescan; BISTATIC");
     strcpy(progname, "rxonlybistaticpcodescan; BISTATIC");
-    txpow = 1;
   } else {
     if (fast) sprintf(progname,"pcodescan (fast)");
     else sprintf(progname,"pcodescan");

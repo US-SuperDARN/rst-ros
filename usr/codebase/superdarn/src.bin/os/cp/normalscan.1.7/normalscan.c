@@ -69,7 +69,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"normalscan 2026/08/04"};
+char progid[80]={"normalscan 2026/08/05"};
 char progname[256];
 
 int arg=0;
@@ -241,7 +241,6 @@ int main(int argc,char *argv[]) {
   if (rxonly) {
     strcpy(progid, "rxonlybistaticscan; BISTATIC");
     strcpy(progname, "rxonlybistaticscan; BISTATIC");
-    txpow = 1;
   } else {
     if (fast) sprintf(progname,"normalscan (fast)");
     else sprintf(progname,"normalscan");

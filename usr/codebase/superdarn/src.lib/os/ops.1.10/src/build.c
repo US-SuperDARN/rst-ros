@@ -112,6 +112,8 @@ void OpsBuildPrm(struct RadarParm *prm,int *ptab,int (*lags)[2]) {
   prm->stat.agc=agcstat;
   prm->stat.lopwr=lopwrstat;
 
+  if (rxonly) prm->txpow = 0;
+
   pulsetab=malloc(sizeof(int16)*mppul);
   for (i=0;i<mppul;i++) pulsetab[i]=ptab[i];
   RadarParmSetPulse(prm,mppul,pulsetab);
