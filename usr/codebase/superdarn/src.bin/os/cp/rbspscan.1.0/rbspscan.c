@@ -323,14 +323,14 @@ int main(int argc,char *argv[]) {
   } else {
     if ((strcmp(ststr,"kap") == 0) || (strcmp(ststr,"ksr") == 0)) {
       bms = bmsb;
-      cbm[0] = 4;
-      cbm[1] = 5;
-      cbm[2] = 7;
-    } else {
-      bms = bmsf;
       cbm[0] = 7;
       cbm[1] = 5;
       cbm[2] = 4;
+    } else {
+      bms = bmsf;
+      cbm[0] = 4;
+      cbm[1] = 5;
+      cbm[2] = 7;
     }
     nbm = 32;
   }
