@@ -72,7 +72,7 @@ char *dfststr="lab";
 char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
-char progid[80]={"rbspscan 2026/06/23"};
+char progid[80]={"rbspscan 2026/08/06"};
 char progname[256];
 int arg=0;
 struct OptionData opt;
@@ -136,6 +136,18 @@ int main(int argc,char *argv[]) {
   unsigned char option=0;
   unsigned char version=0;
   int cbm[3];         /* array to hold camping beams; only for display      */
+
+  /*
+    beam sequences for 16-beam radars; camping beams are 4,5,7
+  */
+  /* count     1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 */
+  /*          17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 */
+  int bmsf[32] =
+             { 0, 4, 1, 5, 2, 7, 3, 4, 4, 5, 5, 7, 6, 4, 7, 5,
+               8, 7, 9, 4,10, 5,11, 7,12, 4,13, 5,14, 7,15, 4};
+  int bmsb[32] =
+             {15, 7,14, 5,13, 4,12, 7,11, 5,10, 4, 9, 7, 8, 5,
+               7, 4, 6, 7, 5, 5, 4, 4, 3, 7, 2, 5, 1, 4, 0, 7};
 
   /*
     beam sequences for 24-beam MSI radars; camping beams are n-1,n,n+3 where
@@ -309,9 +321,18 @@ int main(int argc,char *argv[]) {
     for (i=0; i<nbm; i++)
       bms[i] -= 2;      /* decrement beams by 2 for 22 beam radar */
   } else {
-    if (hlp) usage();
-    else     printf("Error: Not intended for station %s\n", ststr);
-    return (-1);
+    if ((strcmp(ststr,"kap") == 0) || (strcmp(ststr,"ksr") == 0)) {
+      bms = bmsb;
+      cbm[0] = 4;
+      cbm[1] = 5;
+      cbm[2] = 7;
+    } else {
+      bms = bmsf;
+      cbm[0] = 7;
+      cbm[1] = 5;
+      cbm[2] = 4;
+    }
+    nbm = 32;
   }
 
   if (hlp) {
