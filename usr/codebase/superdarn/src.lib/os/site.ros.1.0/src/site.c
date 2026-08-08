@@ -365,8 +365,6 @@ int SiteRosSetupRadar() {
   TCPIPMsgSend(ros.sock, &temp32, sizeof(int32));
   temp32 = cnum;
   TCPIPMsgSend(ros.sock, &temp32, sizeof(int32));
-  temp32 = rfrate;
-  TCPIPMsgSend(ros.sock, &temp32, sizeof(int32));
   TCPIPMsgRecv(ros.sock, &rmsg, sizeof(struct ROSMsg));
   if (rmsg.status < 0) {
     ErrLog(errlog.sock,"SiteRosSetupRadar","Requested radar channel unavailable. Sleeping 1 second and exiting");
@@ -453,6 +451,7 @@ int SiteRosStartScan(int32_t periods_per_scan, int32_t *scan_beam_list,
   if (sync_scan == 1) {
     TCPIPMsgSend(ros.sock, &beam_times[0], periods_per_scan * sizeof(int32_t));
   }
+  TCPIPMsgSend(ros.sock, &rfrate, sizeof(int32_t));
 
   TCPIPMsgRecv(ros.sock, &rmsg, sizeof(struct ROSMsg));
 
