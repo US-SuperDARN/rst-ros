@@ -452,6 +452,7 @@ int SiteRosStartScan(int32_t periods_per_scan, int32_t *scan_beam_list,
     TCPIPMsgSend(ros.sock, &beam_times[0], periods_per_scan * sizeof(int32_t));
   }
   TCPIPMsgSend(ros.sock, &rfrate, sizeof(int32_t));
+  TCPIPMsgSend(ros.sock, &rxonly, sizeof(int32_t));
 
   TCPIPMsgRecv(ros.sock, &rmsg, sizeof(struct ROSMsg));
 
