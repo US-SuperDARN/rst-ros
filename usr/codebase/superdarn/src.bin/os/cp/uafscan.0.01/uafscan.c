@@ -78,7 +78,7 @@ int rst_opterr(char *txt) {
 
 
 int main(int argc,char *argv[]) {
-  char progid[80]={"uafscan 2026/08/05"};
+  char progid[80]={"uafscan 2026/08/13"};
   char progname[256]="uafscan";
   char modestr[32];
 
@@ -126,7 +126,7 @@ int main(int argc,char *argv[]) {
   int clrskip=-1;
   int default_clrskip_secs=30;
   int startup=1;
-  int fixfrq=-1;
+  int fixfrq=0;
 
   int camp=-1;
   int meribm=10;    /* meridional beam */
