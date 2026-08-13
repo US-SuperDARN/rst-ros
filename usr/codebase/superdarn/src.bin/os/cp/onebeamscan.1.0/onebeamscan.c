@@ -60,7 +60,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"onebeamscan 2026/08/05"};
+char progid[80]={"onebeamscan 2026/08/13"};
 char progname[256];
 
 int arg=0;
@@ -116,6 +116,7 @@ int main(int argc,char *argv[]) {
 
   /* Flag and variables for beam synchronizing */
   int bm_sync = 0;
+  int bmst    = 1;
   int bmsc    = 6;
   int bmus    = 0;
 
@@ -160,8 +161,9 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt, "fixfrq", 'i', &fixfrq);   /* fix the transmit frequency */
   OptionAdd(&opt, "frqrng", 'i', &frqrng);   /* fix the FCLR window [kHz]  */
   OptionAdd(&opt, "cpid",   'i', &cpid);     /* allow user to specify CPID */
-  OptionAdd(&opt, "rxonly", 'x', &rxonly);   /* RX-only mode                */
+  OptionAdd(&opt, "rxonly", 'x', &rxonly);   /* RX-only mode               */
   OptionAdd(&opt, "bm_sync",'x', &bm_sync);  /* flag to enable beam sync   */
+  OptionAdd(&opt, "bmst",   'i', &bmst);     /* beam sync start time, sec  */
   OptionAdd(&opt, "bmsc",   'i', &bmsc);     /* beam sync period, sec      */
   OptionAdd(&opt, "bmus",   'i', &bmus);     /* beam sync period, microsec */
   OptionAdd(&opt, "intsc",  'i', &intsc);
@@ -270,7 +272,7 @@ int main(int argc,char *argv[]) {
 
   for (iBeam=0; iBeam < nBeams_per_scan; iBeam++) {
     scan_beam_number_list[iBeam] = obm;
-    if (bm_sync) scan_times[iBeam] = iBeam * (bmsc*1000 + bmus/1000); /* in ms*/
+    if (bm_sync) scan_times[iBeam] = iBeam * (bmsc*1000 + bmus/1000) + bmst*1000; /* in ms */
   }
 
   /* recomputing the integration period for each beam */
@@ -536,6 +538,7 @@ void usage(void)
   printf("    -nb int : number of beams per scan [16]\n");
   printf("-rxonly     : bistatic RX only mode.\n");
   printf("-bm_sync    : set to enable beam syncing.\n");
+  printf("  -bmst int : beam syncing start second [1].\n");
   printf("  -bmsc int : beam syncing interval seconds.\n");
   printf("  -bmus int : beam syncing interval microseconds.\n");
   printf("-setintt    : set to enable integration period override.\n");

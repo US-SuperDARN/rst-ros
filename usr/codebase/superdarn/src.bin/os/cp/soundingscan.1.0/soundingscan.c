@@ -50,7 +50,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"soundingscan 2026/08/05"};
+char progid[80]={"soundingscan 2026/08/13"};
 char progname[256];
 
 int arg=0;
@@ -104,6 +104,7 @@ int main(int argc,char *argv[]) {
 
   /* Flag and variables for beam synchronizing */
   int bm_sync = 0;
+  int bmst    = 1;
   int bmsc    = 6;
   int bmus    = 0;
 
@@ -170,6 +171,7 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt, "rxonly", 'x', &rxonly);   /* RX-only mode                */
   OptionAdd(&opt, "offset", 'i', &offset);   /* offset freq for dual in kHz */
   OptionAdd(&opt, "bm_sync",'x', &bm_sync);  /* flag to enable beam sync    */
+  OptionAdd(&opt, "bmst",   'i', &bmst);     /* beam sync start time, sec   */
   OptionAdd(&opt, "bmsc",   'i', &bmsc);     /* beam sync period, sec       */
   OptionAdd(&opt, "bmus",   'i', &bmus);     /* beam sync period, microsec  */
   OptionAdd(&opt, "intsc",  'i', &intsc);
@@ -281,7 +283,7 @@ int main(int argc,char *argv[]) {
   for (iBeam=0; iBeam < nBeams_per_scan; iBeam++) {
     scan_beam_number_list[iBeam] = current_beam;
     current_beam += backward ? -1:1;
-    if (bm_sync) scan_times[iBeam] = iBeam * (bmsc*1000 + bmus/1000); /* in ms*/
+    if (bm_sync) scan_times[iBeam] = iBeam * (bmsc*1000 + bmus/1000) + bmst*1000; /* in ms */
   }
 
   if ((nowait==0) && (setintt==0)) {
@@ -524,6 +526,7 @@ void usage(void)
   printf("-clrskip int: Minimum number of seconds to skip between clear frequency search\n");
   printf("-rxonly     : bistatic RX only mode.\n");
   printf("-bm_sync    : set to enable beam syncing.\n");
+  printf("  -bmst int : beam syncing start second [1].\n");
   printf("  -bmsc int : beam syncing interval seconds.\n");
   printf("  -bmus int : beam syncing interval microseconds.\n");
   printf("-setintt    : set to enable integration period override.\n");
