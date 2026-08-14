@@ -50,7 +50,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"soundingscan 2026/08/13"};
+char progid[80]={"soundingscan 2026/08/14"};
 char progname[256];
 
 int arg=0;
@@ -177,6 +177,8 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt, "intsc",  'i', &intsc);
   OptionAdd(&opt, "intus",  'i', &intus);
   OptionAdd(&opt, "setintt",'x', &setintt);
+  OptionAdd(&opt, "baud",   'i', &nbaud);
+  OptionAdd(&opt, "tau",    'i', &mpinc);
 
   OptionAdd(&opt, "c",      'i', &cnum);
   OptionAdd(&opt, "ros",    't', &roshost);  /* Set the roshost IP address  */
@@ -296,6 +298,32 @@ int main(int argc,char *argv[]) {
   /* Configure phasecoded operation if nbaud > 1 */
   pcode=(int *)malloc((size_t)sizeof(int)*seq->mppul*nbaud);
   OpsBuildPcode(nbaud,seq->mppul,pcode);
+
+  txpl=(nbaud*rsep*20)/3;
+
+  /* Attempt to adjust mpinc to be a multiple of 10 and a multiple of txpl */
+  if ((mpinc % txpl) || (mpinc % 10))  {
+    ErrLog(errlog.sock,progname,"Error: mpinc not multiple of txpl... checking to see if it can be adjusted");
+    sprintf(logtxt,"Initial: mpinc: %d  txpl: %d  nbaud: %d  rsep: %d", mpinc, txpl, nbaud, rsep);
+    ErrLog(errlog.sock,progname,logtxt);
+
+    if ((txpl % 10) == 0) {
+      ErrLog(errlog.sock,progname, "Attempting to adjust mpinc to be correct");
+      if (mpinc < txpl) mpinc = txpl;
+      int minus_remain = mpinc % txpl;
+      int plus_remain = txpl - (mpinc % txpl);
+      if (plus_remain > minus_remain) mpinc = mpinc - minus_remain;
+      else                            mpinc = mpinc + plus_remain;
+      if (mpinc == 0) mpinc = mpinc + plus_remain;
+    }
+  }
+
+  /* Check mpinc and if still invalid, exit with error */
+  if ((mpinc % txpl) || (mpinc % 10) || (mpinc==0))  {
+    sprintf(logtxt,"Error: mpinc: %d  txpl: %d  nbaud: %d  rsep: %d", mpinc, txpl, nbaud, rsep);
+    ErrLog(errlog.sock,progname,logtxt);
+    SiteExit(0);
+  }
 
   OpsSetupIQBuf(intsc,intus,mppul,mpinc,nbaud);
 
@@ -532,6 +560,8 @@ void usage(void)
   printf("-setintt    : set to enable integration period override.\n");
   printf(" -intsc int : integration period seconds.\n");
   printf(" -intus int : integration period microseconds.\n");
+  printf("  -baud int : baud to use for Barker phase coded sequence (1,2,3,4,5,7,11,13) [1]\n");
+  printf("   -tau int : lag spacing in usecs [1500]\n");
   printf("     -c int : channel number for multi-channel radars.\n");
   printf("   -ros char: change the roshost IP address\n");
   printf(" --help     : print this message and quit.\n");
