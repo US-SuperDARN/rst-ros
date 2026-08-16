@@ -639,7 +639,7 @@ int main(int argc,char *argv[])
       ErrLog(errlog.sock, progname, "Doing SND clear frequency search.");
       sprintf(logtxt, "FRQ: %d %d", snd_freq, snd_frqrng);
       ErrLog(errlog.sock,progname, logtxt);
-      tfreq = SiteFCLR(snd_freq, snd_freq + snd_frqrng);i
+      tfreq = SiteFCLR(snd_freq, snd_freq + snd_frqrng);
       if (fixfrq) tfreq = snd_freq;
 
       sprintf(logtxt,"Transmitting SND on: %d (Noise=%g)",tfreq,noise);
