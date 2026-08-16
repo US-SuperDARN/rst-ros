@@ -55,7 +55,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"normalsound_usrp 2026/08/13"};
+char progid[80]={"normalsound_usrp 2026/08/15"};
 char progname[256];
 
 int arg=0;
@@ -161,12 +161,13 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt, "sb",     'i', &sbm);
   OptionAdd(&opt, "eb",     'i', &ebm);
   OptionAdd(&opt, "bms",    't', &bmstr);      /* comma-separated list of beams */
-  OptionAdd(&opt, "snd",    'x', &snd_flg);    /* write snd data file */
-  OptionAdd(&opt, "sfrqrng",'i', &snd_frqrng); /* sounding FCLR window [kHz]  */
-  OptionAdd(&opt, "bm_sync",'x', &bm_sync);    /* flag to enable beam sync    */
-  OptionAdd(&opt, "bmst",   'i', &bmst);       /* beam sync start time, sec   */
-  OptionAdd(&opt, "bmsc",   'i', &bmsc);       /* beam sync period, sec       */
-  OptionAdd(&opt, "bmus",   'i', &bmus);       /* beam sync period, microsec  */
+  OptionAdd(&opt, "fixfrq", 'x', &fixfrq);     /* fix the transmit frequency    */
+  OptionAdd(&opt, "snd",    'x', &snd_flg);    /* write snd data file           */
+  OptionAdd(&opt, "sfrqrng",'i', &snd_frqrng); /* sounding FCLR window [kHz]    */
+  OptionAdd(&opt, "bm_sync",'x', &bm_sync);    /* flag to enable beam sync      */
+  OptionAdd(&opt, "bmst",   'i', &bmst);       /* beam sync start time, sec     */
+  OptionAdd(&opt, "bmsc",   'i', &bmsc);       /* beam sync period, sec         */
+  OptionAdd(&opt, "bmus",   'i', &bmus);       /* beam sync period, microsec    */
   OptionAdd(&opt, "intsc",  'i', &intsc);
   OptionAdd(&opt, "intus",  'i', &intus);
   OptionAdd(&opt, "setintt",'x', &setintt);
@@ -395,6 +396,8 @@ int main(int argc,char *argv[]) {
 
   if (discretion) cp = -cp;
 
+  if (snd_frqrng <= 0) fixfrq = 1;
+
   OpsLogStart(errlog.sock,progname,argc,argv);
   OpsSetupTask(tnum,task,errlog.sock,progname);
 
@@ -426,7 +429,7 @@ int main(int argc,char *argv[]) {
     for (iBeam=0; iBeam < nBeams_per_scan; iBeam++) {
       scan_beam_number_list[iBeam] = snd_bms[snd_bm_cnt];
       scan_clrfreq_fstart_list[iBeam] = snd_freqs[snd_freq_cnt];
-      scan_clrfreq_bandwidth_list[iBeam] = snd_frqrng;
+      scan_clrfreq_bandwidth_list[iBeam] = (fixfrq == 1 ? 0 : snd_frqrng);
 
       snd_freq_cnt++;
       if (snd_freq_cnt >= snd_freqs_tot) {
@@ -444,7 +447,7 @@ int main(int argc,char *argv[]) {
 
     /* send scan data to usrp_sever */
     if (SiteStartScan(nBeams_per_scan, scan_beam_number_list, scan_clrfreq_fstart_list,
-                      scan_clrfreq_bandwidth_list, 0, sync_scan, scan_times,
+                      scan_clrfreq_bandwidth_list, fixfrq, sync_scan, scan_times,
                       scnsc, scnus, intsc, intus, iBeam) !=0) {
       ErrLog(errlog.sock,progname,"Received error from usrp_server in ROS:SiteStartScan. Probably channel frequency issue in SetActiveHandler.");
       sleep(1);
@@ -492,9 +495,9 @@ int main(int argc,char *argv[]) {
           sprintf(logtxt, "FRQ: %d %d", stfrq, snd_frqrng);
           ErrLog(errlog.sock,progname, logtxt);
 
-          if (fixfrq<=0) {
-            tfreq=SiteFCLR(stfrq,stfrq+snd_frqrng);
-          }
+          tfreq=SiteFCLR(stfrq,stfrq+snd_frqrng);
+          if (fixfrq) tfreq = stfreq;
+
           t0.tv_sec  = t1.tv_sec;
           t0.tv_usec = t1.tv_usec;
       }
@@ -600,6 +603,7 @@ void usage(void)
     printf("    -ep int : error log port\n");
     printf("    -sp int : shell port\n");
     printf("    -bp int : base port\n");
+    printf("-fixfrq     : set to transmit on fixed frequency\n");
     printf("-sfrqrng int: set the sounding FCLR search window (kHz)\n");
     printf("-nowait     : do not wait at end of scan boundary.\n");
     printf("    -nb int : number of beams per scan [16]\n");

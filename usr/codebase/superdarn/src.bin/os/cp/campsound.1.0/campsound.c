@@ -57,7 +57,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"campsound 2026/06/23"};
+char progid[80]={"campsound 2026/08/15"};
 char progname[256];
 
 int arg=0;
@@ -155,6 +155,7 @@ int main(int argc,char *argv[])
   OptionAdd(&opt, "bp",     'i', &baseport);
   OptionAdd(&opt, "stid",   't', &ststr);
   OptionAdd(&opt, "12beam", 'x', &ext_flg);    /* use 12 beams instead of 4 */
+  OptionAdd(&opt, "fixfrq", 'x', &fixfrq);     /* fix the transmit frequency */
   OptionAdd(&opt, "frqrng", 'i', &snd_frqrng); /* fix the FCLR window [kHz] */
   OptionAdd(&opt, "iqdat",  'x', &iq_flg);     /* store IQ samples */
   OptionAdd(&opt, "rawacf", 'x', &raw_flg);    /* store rawacf data */
@@ -264,7 +265,7 @@ int main(int argc,char *argv[])
     for (snd_freq_cnt = 0; snd_freq_cnt < nfreqs; snd_freq_cnt++) {
       scan_beam_number_list[iBeam] = bms[snd_bm_cnt];
       scan_clrfreq_fstart_list[iBeam] = (int32_t) (freqs[snd_freq_cnt]);
-      scan_clrfreq_bandwidth_list[iBeam] = snd_frqrng;
+      scan_clrfreq_bandwidth_list[iBeam] = (int32_t) (fixfrq == 1 ? 0 : snd_frqrng);
       iBeam++;
     }
   }
@@ -290,6 +291,8 @@ int main(int argc,char *argv[])
   printf("Initial Setup Complete: Station ID: %s  %d\n",ststr,stid);
 
   if (discretion) cp = -cp;
+
+  if (frqrng <= 0) fixfrq = 1;
 
   txpl=(nbaud*rsep*20)/3;
 
@@ -363,6 +366,7 @@ int main(int argc,char *argv[])
       sprintf(logtxt, "FRQ: %d %d", stfrq, snd_frqrng);
       ErrLog(errlog.sock,progname, logtxt);
       tfreq=SiteFCLR(stfrq,stfrq+snd_frqrng);
+      if (fixfrq) tfreq = stfrq;
 
       sprintf(logtxt,"Transmitting on: %d (Noise=%g)",tfreq,noise);
       ErrLog(errlog.sock,progname,logtxt);
@@ -476,6 +480,7 @@ void usage(void)
     printf("    -sp int : shell port\n");
     printf("    -bp int : base port\n");
     printf("-12beam     : use 12 beams instead of 4\n");
+    printf("-fixfrq     : set to transmit on fixed frequency\n");
     printf("-frqrng int : set the clear frequency search window (kHz)\n");
     printf(" -iqdat     : set for storing snd IQ samples\n");
     printf("-rawacf     : set for writing snd rawacf files\n");

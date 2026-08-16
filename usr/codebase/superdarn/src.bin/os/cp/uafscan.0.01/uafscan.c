@@ -78,7 +78,7 @@ int rst_opterr(char *txt) {
 
 
 int main(int argc,char *argv[]) {
-  char progid[80]={"uafscan 2026/08/13"};
+  char progid[80]={"uafscan 2026/08/15"};
   char progname[256]="uafscan";
   char modestr[32];
 
@@ -178,7 +178,7 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt, "nt", 'i', &night);
   OptionAdd(&opt, "df", 'i', &dfrq);
   OptionAdd(&opt, "nf", 'i', &nfrq);
-  OptionAdd(&opt, "fixfrq", 'i', &fixfrq);
+  OptionAdd(&opt, "fixfrq", 'x', &fixfrq);
   OptionAdd(&opt, "frqrng", 'i', &frqrng);
   OptionAdd(&opt, "xcf", 'i', &xcnt);
   OptionAdd(&opt, "ep", 'i', &errlog.port);
@@ -594,6 +594,7 @@ int main(int argc,char *argv[]) {
   if (discretion)
      cp= -cp;
 
+  if (frqrng <= 0) fixfrq = 1;
 
   /* Calculate tx pulse length setting from range separation */
   txpl = (nbaud*rsep*20)/3;
@@ -717,7 +718,7 @@ int main(int argc,char *argv[]) {
     /* reset clearfreq paramaters, in case daytime changed */
     for (iBeam =0; iBeam < nBeams_per_scan; iBeam++) {
       scan_clrfreq_fstart_list[iBeam] = (int32_t) (OpsDayNight() == 1 ? dfrq : nfrq);
-      scan_clrfreq_bandwidth_list[iBeam] = frqrng;
+      scan_clrfreq_bandwidth_list[iBeam] = (int32_t) (fixfrq == 1 ? 0 : frqrng);
       current_beam += backward ? -1:1;
     }
 
@@ -773,11 +774,6 @@ int main(int argc,char *argv[]) {
 
       /* TODO: JDS: You can not make any day night changes that impact TR gate timing at dual site locations. Care must be taken with day night operation*/
       stfrq = scan_clrfreq_fstart_list[iBeam];
-      if (fixfrq>0) {
-        stfrq=fixfrq;
-        tfreq=fixfrq;
-        noise=0;
-      }
 
       ErrLog(errlog.sock,progname,"Starting Integration.");
       sprintf(logtxt," Int parameters:: rsep: %d mpinc: %d sbm: %d ebm: %d nrang: %d nbaud: %d scannowait: %d clrskip_secs: %d clrscan: %d cpid: %d",
@@ -798,9 +794,9 @@ int main(int argc,char *argv[]) {
           sprintf(logtxt, "FRQ: %d %d", stfrq, frqrng);
           ErrLog(errlog.sock,progname, logtxt);
 
-          if (fixfrq<=0) {
-              tfreq=SiteFCLR(stfrq,stfrq+frqrng);
-          }
+          tfreq=SiteFCLR(stfrq,stfrq+frqrng);
+          if (fixfrq) tfreq = stfrq;
+
           t0.tv_sec  = t1.tv_sec;
           t0.tv_usec = t1.tv_usec;
       }
@@ -911,7 +907,7 @@ void usage(void)
   printf("    -nt int : UTC Hour indicating start of night time operation\n");
   printf("    -df int : Day time transmit frequency in kHz\n");
   printf("    -nf int : Night time transmit frequency in kHz\n");
-  printf("-fixfrq int : Fixes the transmit frequency of the radar to one frequency, in kHz\n");
+  printf("-fixfrq     : Fixes the transmit frequency of the radar to one frequency\n");
   printf("-frqrng int : Set the clear frequency search window (kHz)\n");
   printf("   -xcf int : Enable xcf, -xcf 1: for all sequences -xcf 2: for every other sequence, etc...\n");
   printf("    -ep int : Local TCP port for errlog process\n");

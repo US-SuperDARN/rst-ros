@@ -74,7 +74,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"pcppcodescan 2026/06/23"};
+char progid[80]={"pcppcodescan 2026/08/15"};
 char progname[256];
 
 int arg=0;
@@ -266,7 +266,7 @@ int main(int argc,char *argv[]) {
   for (pcpcnt = 0; pcpcnt < snd_nBeams_per_scan; pcpcnt++) {
     snd_beam_number_list[pcpcnt] = PCPBEAM;
     snd_clrfreq_fstart_list[pcpcnt] = pcpfreqs[pcpcnt];
-    snd_clrfreq_bandwidth_list[pcpcnt] = frqrng;
+    snd_clrfreq_bandwidth_list[pcpcnt] = (fixfrq == 1 ? 0 : frqrng);
   }
 
   txpl=(nbaud*rsep*20)/3;
@@ -320,6 +320,8 @@ int main(int argc,char *argv[]) {
 
   if (discretion) cp= -cp;
 
+  if (frqrng <= 0) fixfrq = 1;
+
   OpsLogStart(errlog.sock,progname,argc,argv);
   OpsSetupTask(tnum,task,errlog.sock,progname);
 
@@ -354,7 +356,7 @@ int main(int argc,char *argv[]) {
     /* reset clearfreq parameters, in case daytime changed */
     for (iBeam=0; iBeam < nBeams_per_scan; iBeam++) {
       scan_clrfreq_fstart_list[iBeam] = (int32_t) (OpsDayNight() == 1 ? dfrq : nfrq);
-      scan_clrfreq_bandwidth_list[iBeam] = frqrng;
+      scan_clrfreq_bandwidth_list[iBeam] = (int32_t) (fixfrq == 1 ? 0 : frqrng);
     }
 
     /* set iBeam for scan loop */
@@ -384,11 +386,6 @@ int main(int argc,char *argv[]) {
       TimeReadClock(&yr,&mo,&dy,&hr,&mt,&sc,&us);
 
       stfrq = scan_clrfreq_fstart_list[iBeam];
-      if (fixfrq > 0) {
-        stfrq=fixfrq;
-        tfreq=fixfrq;
-        noise=0;
-      }
 
       sprintf(logtxt,"Integrating beam:%d intt:%ds.%dus (%02d:%02d:%02d:%06d)",bmnum,
                       intsc,intus,hr,mt,sc,us);
@@ -407,9 +404,9 @@ int main(int argc,char *argv[]) {
           sprintf(logtxt, "FRQ: %d %d", stfrq, frqrng);
           ErrLog(errlog.sock,progname, logtxt);
 
-          if (fixfrq<=0) {
-              tfreq=SiteFCLR(stfrq,stfrq+frqrng);
-          }
+          tfreq=SiteFCLR(stfrq,stfrq+frqrng);
+          if (fixfrq) tfreq = stfrq;
+
           t0.tv_sec  = t1.tv_sec;
           t0.tv_usec = t1.tv_usec;
       }
@@ -487,7 +484,7 @@ int main(int argc,char *argv[]) {
 
     /* send sounding scan data to usrp_sever */
     if (SiteStartScan(snd_nBeams_per_scan, snd_beam_number_list, snd_clrfreq_fstart_list,
-                      snd_clrfreq_bandwidth_list, 0, sync_scan, scan_times, snd_sc, 0,
+                      snd_clrfreq_bandwidth_list, fixfrq, sync_scan, scan_times, snd_sc, 0,
                       intsc, intus, pcpcnt) !=0) {
       ErrLog(errlog.sock,progname,"Received error from usrp_server in ROS:SiteStartScan. Probably channel frequency issue in SetActiveHandler.");
       sleep(1);
@@ -513,6 +510,7 @@ int main(int argc,char *argv[]) {
       ErrLog(errlog.sock,progname, logtxt);
 
       tfreq=SiteFCLR(stfrq,stfrq+frqrng);
+      if (fixfrq) tfreq = stfrq;
 
       sprintf(logtxt,"Transmitting on: %d (Noise=%g)",tfreq,noise);
       ErrLog(errlog.sock,progname,logtxt);

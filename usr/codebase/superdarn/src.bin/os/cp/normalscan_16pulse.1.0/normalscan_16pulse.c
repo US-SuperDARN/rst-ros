@@ -53,7 +53,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"normalscan_16pulse 2026/06/23"};
+char progid[80]={"normalscan_16pulse 2026/08/15"};
 char progname[256];
 
 int arg=0;
@@ -142,7 +142,7 @@ int main(int argc,char *argv[])
   OptionAdd(&opt, "sb",     'i', &sbm);
   OptionAdd(&opt, "eb",     'i', &ebm);
   OptionAdd(&opt, "baud",   'i', &nbaud);
-  OptionAdd(&opt, "fixfrq", 'i', &fixfrq);     /* fix the transmit frequency */
+  OptionAdd(&opt, "fixfrq", 'x', &fixfrq);     /* fix the transmit frequency */
   OptionAdd(&opt, "frqrng", 'i', &frqrng);     /* fix the FCLR window [kHz] */
   OptionAdd(&opt, "c",      'i', &cnum);
   OptionAdd(&opt, "ros",    't', &roshost);    /* Set the roshost IP address */
@@ -309,6 +309,8 @@ int main(int argc,char *argv[])
 
   if (discretion) cp = -cp;
 
+  if (frqrng <= 0) fixfrq = 1;
+
   OpsLogStart(errlog.sock,progname,argc,argv);
   OpsSetupTask(tnum,task,errlog.sock,progname);
 
@@ -322,8 +324,6 @@ int main(int argc,char *argv[])
 
   printf("Preparing SiteTimeSeq Station ID: %s  %d\n",ststr,stid);
   tsgid=SiteTimeSeq(seq->ptab);
-
-  if (FreqTest(ftable,fixfrq) == 1) fixfrq = 0;
 
   /* Synchronize start of first scan to minute boundary */
   if (nowait==0) {
@@ -339,7 +339,7 @@ int main(int argc,char *argv[])
     /* reset clearfreq parameters, in case daytime changed */
     for (iBeam=0; iBeam < nBeams_per_scan; iBeam++) {
       scan_clrfreq_fstart_list[iBeam] = (int32_t) (OpsDayNight() == 1 ? dfrq : nfrq);
-      scan_clrfreq_bandwidth_list[iBeam] = frqrng;
+      scan_clrfreq_bandwidth_list[iBeam] = (int32_t) (fixfrq == 1 ? 0 : frqrng);
     }
 
     /* set iBeam for scan loop */
@@ -373,11 +373,6 @@ int main(int argc,char *argv[])
       TimeReadClock(&yr,&mo,&dy,&hr,&mt,&sc,&us);
 
       stfrq = scan_clrfreq_fstart_list[iBeam];
-      if (fixfrq > 0) {
-        stfrq=fixfrq;
-        tfreq=fixfrq;
-        noise=0;
-      }
 
       sprintf(logtxt,"Integrating beam:%d intt:%ds.%dus (%02d:%02d:%02d:%06d)",
                      bmnum,intsc,intus,hr,mt,sc,us);
@@ -397,9 +392,9 @@ int main(int argc,char *argv[])
           sprintf(logtxt, "FRQ: %d %d", stfrq, frqrng);
           ErrLog(errlog.sock,progname, logtxt);
 
-          if (fixfrq<=0) {
-              tfreq=SiteFCLR(stfrq,stfrq+frqrng);
-          }
+          tfreq=SiteFCLR(stfrq,stfrq+frqrng);
+          if (fixfrq) tfreq = stfrq;
+
           t0.tv_sec  = t1.tv_sec;
           t0.tv_usec = t1.tv_usec;
       }
@@ -510,7 +505,7 @@ void usage(void)
     printf("    -ep int : error log port\n");
     printf("    -sp int : shell port\n");
     printf("    -bp int : base port\n");
-    printf("-fixfrq int : transmit on fixed frequency (kHz)\n");
+    printf("-fixfrq     : set to transmit on fixed frequency\n");
     printf("-nowait     : do not wait at end of scan boundary.\n");
     printf("-clrscan    : Force clear frequency search at start of scan\n");
     printf("-clrskip int: Minimum number of seconds to skip between clear frequency search\n");

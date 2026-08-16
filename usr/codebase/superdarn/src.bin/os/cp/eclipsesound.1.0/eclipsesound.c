@@ -53,7 +53,7 @@ char *dfststr="lab";
 char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
-char progid[80]={"eclipsesound 2026/06/23"};
+char progid[80]={"eclipsesound 2026/08/15"};
 char progname[256];
 int arg=0;
 struct OptionData opt;
@@ -171,7 +171,7 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt,"sp",    'i',&shell.port);
   OptionAdd(&opt,"bp",    'i',&baseport);
   OptionAdd(&opt,"stid",  't',&ststr);
-  OptionAdd(&opt,"fixfrq",'i',&fixfrq);     /* fix the transmit frequency */
+  OptionAdd(&opt,"fixfrq",'x',&fixfrq);     /* fix the transmit frequency */
   OptionAdd(&opt,"frqrng",'i',&frqrng);     /* fix the FCLR window [kHz] */
   OptionAdd(&opt,"sfrqrng",'i',&snd_frqrng); /* sounding FCLR window [kHz] */
   OptionAdd(&opt,"iqdat", 'x',&iq_flg);     /* store IQ samples */
@@ -333,6 +333,8 @@ int main(int argc,char *argv[]) {
 
   if (discretion) cp = -cp;
 
+  if (frqrng <= 0) fixfrq = 1;
+
   txpl=(nbaud*rsep*20)/3;     /* computing TX pulse length */
 
   def_nrang = nrang;
@@ -349,8 +351,6 @@ int main(int argc,char *argv[]) {
 
   OpsFitACFStart();
   OpsSndStart();
-
-  if (FreqTest(ftable,fixfrq) == 1) fixfrq = 0;
 
   if ((def_nrang == snd_nrang) && (def_rsep == snd_rsep)) {
     tsgid=SiteTimeSeq(seq->ptab);  /* get the timing sequence */
@@ -371,7 +371,7 @@ int main(int argc,char *argv[]) {
     /* reset clearfreq paramaters, in case daytime changed */
     for (iBeam =0; iBeam < nBeams_per_scan; iBeam++) {
       scan_clrfreq_fstart_list[iBeam] = (int32_t) (OpsDayNight() == 1 ? dfrq : nfrq);
-      scan_clrfreq_bandwidth_list[iBeam] = frqrng;
+      scan_clrfreq_bandwidth_list[iBeam] = (int32_t) (fixfrq == 1 ? 0 : frqrng);
     }
 
     /* Set iBeam for scan loop  */
@@ -404,11 +404,6 @@ int main(int argc,char *argv[]) {
       TimeReadClock(&yr,&mo,&dy,&hr,&mt,&sc,&us);
 
       stfrq = scan_clrfreq_fstart_list[iBeam];
-      if (fixfrq > 0) {
-        stfrq=fixfrq;
-        tfreq=fixfrq;
-        noise=0;
-      }
 
       sprintf(logtxt,"Integrating beam:%d intt:%ds.%dus (%02d:%02d:%02d:%06d)",bmnum,
               intsc,intus,hr,mt,sc,us);
@@ -426,9 +421,9 @@ int main(int argc,char *argv[]) {
           sprintf(logtxt, "FRQ: %d %d", stfrq, frqrng);
           ErrLog(errlog.sock,progname, logtxt);
 
-          if (fixfrq<=0) {
-              tfreq=SiteFCLR(stfrq,stfrq+frqrng);
-          }
+          tfreq=SiteFCLR(stfrq,stfrq+frqrng);
+          if (fixfrq) tfreq = stfrq;
+
           t0.tv_sec  = t1.tv_sec;
           t0.tv_usec = t1.tv_usec;
       }
@@ -522,7 +517,7 @@ int main(int argc,char *argv[]) {
     for (snd_iBeam=0; snd_iBeam < snd_nBeams_per_scan; snd_iBeam++) {
       snd_beam_number_list[snd_iBeam] = snd_bms[snd_bm_cnt];
       snd_clrfreq_fstart_list[snd_iBeam] = snd_freqs[snd_freq_cnt];
-      snd_clrfreq_bandwidth_list[snd_iBeam] = snd_frqrng;
+      snd_clrfreq_bandwidth_list[snd_iBeam] = (fixfrq == 1 ? 0 : snd_frqrng);
       snd_bc[snd_iBeam] = snd_bm_cnt;
       snd_fc[snd_iBeam] = snd_freq_cnt;
 
@@ -549,7 +544,7 @@ int main(int argc,char *argv[]) {
 
     /* send sounding scan data to usrp_sever */
     if (SiteStartScan(snd_nBeams_per_scan, snd_beam_number_list, snd_clrfreq_fstart_list,
-                      snd_clrfreq_bandwidth_list, 0, sync_scan, scan_times, snd_sc, 0,
+                      snd_clrfreq_bandwidth_list, fixfrq, sync_scan, scan_times, snd_sc, 0,
                       snd_intt_sc, snd_intt_us, snd_iBeam) !=0) {
       ErrLog(errlog.sock,progname,"Received error from usrp_server in ROS:SiteStartScan. Probably channel frequency issue in SetActiveHandler.");
       sleep(1);
@@ -581,6 +576,7 @@ int main(int argc,char *argv[]) {
       sprintf(logtxt, "FRQ: %d %d", snd_freq, snd_frqrng);
       ErrLog(errlog.sock,progname, logtxt);
       tfreq = SiteFCLR(snd_freq, snd_freq + snd_frqrng);
+      if (fixfrq) tfreq = snd_freq;
 
       sprintf(logtxt,"Transmitting SND on: %d (Noise=%g)",tfreq,noise);
       ErrLog(errlog.sock, progname, logtxt);
@@ -687,7 +683,7 @@ void usage(void)
     printf("     -ep int : error log port\n");
     printf("     -sp int : shell port\n");
     printf("     -bp int : base port\n");
-    printf(" -fixfrq int : transmit on fixed frequency (kHz)\n");
+    printf(" -fixfrq     : set to transmit on fixed frequency\n");
     printf(" -frqrng int : set the clear frequency search window (kHz)\n");
     printf("-sfrqrng int : set the sounding FCLR search window (kHz)\n");
     printf("  -iqdat     : set for storing snd IQ samples\n");

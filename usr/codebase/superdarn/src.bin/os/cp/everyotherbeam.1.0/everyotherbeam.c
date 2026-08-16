@@ -63,7 +63,7 @@ char *dfststr = "tst";
 char *libstr = "ros";
 void *tmpbuf;
 size_t tmpsze;
-char progid[80] = {"everyotherbeam 2026/06/23"};
+char progid[80] = {"everyotherbeam 2026/08/15"};
 char progname[256];
 int arg=0;
 struct OptionData opt;
@@ -161,7 +161,7 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt,"nowait",'x',&nowait);
   OptionAdd(&opt,"clrscan",'x',&clrscan);
   OptionAdd(&opt,"clrskip",'i',&clrskip);
-  OptionAdd(&opt,"fixfrq",'i',&fixfrq);   /* fix the transmit frequency */
+  OptionAdd(&opt,"fixfrq",'x',&fixfrq);   /* fix the transmit frequency */
   OptionAdd(&opt,"frqrng",'i',&frqrng);   /* fix the FCLR window [kHz]  */
   OptionAdd(&opt,"ros",   't',&roshost);  /* Set the roshost IP address */
   OptionAdd(&opt,"c",     'i',&cnum);
@@ -311,6 +311,8 @@ int main(int argc,char *argv[]) {
 
   if (discretion) cp = -cp;
 
+  if (frqrng <= 0) fixfrq = 1;
+
   txpl = (nbaud*rsep*20)/3;   /* computing TX pulse length */
 
   OpsLogStart(errlog.sock,progname,argc,argv);
@@ -325,8 +327,6 @@ int main(int argc,char *argv[]) {
 
   tsgid = SiteTimeSeq(seq->ptab);  /* get the timing sequence */
 
-  if (FreqTest(ftable,fixfrq) == 1) fixfrq = 0;
-
   /* Synchronize start of first scan to minute boundary */
   ErrLog(errlog.sock,progname,"Synchronizing to scan boundary.");
   SiteEndScan(scnsc,scnus,100000);
@@ -338,7 +338,7 @@ int main(int argc,char *argv[]) {
     /* reset clearfreq parameters, in case daytime changed */
     for (iBeam=0; iBeam < nBeams_per_scan; iBeam++) {
       scan_clrfreq_fstart_list[iBeam] = (int32_t) (OpsDayNight() == 1 ? dfrq : nfrq);
-      scan_clrfreq_bandwidth_list[iBeam] = frqrng;
+      scan_clrfreq_bandwidth_list[iBeam] = (int32_t) (fixfrq == 1 ? 0 : frqrng);
     }
 
     /* set iBeam for scan loop */
@@ -371,11 +371,6 @@ int main(int argc,char *argv[]) {
       TimeReadClock(&yr,&mo,&dy,&hr,&mt,&sc,&us);
 
       stfrq = scan_clrfreq_fstart_list[iBeam];
-      if (fixfrq > 0) {
-        stfrq=fixfrq;
-        tfreq=fixfrq;
-        noise=0;
-      }
 
       sprintf(logtxt,"Integrating beam:%d intt:%ds.%dus (%02d:%02d:%02d:%06d)",
               bmnum,intsc,intus,hr,mt,sc,us);
@@ -392,9 +387,9 @@ int main(int argc,char *argv[]) {
           sprintf(logtxt, "FRQ: %d %d", stfrq, frqrng);
           ErrLog(errlog.sock,progname, logtxt);
 
-          if (fixfrq<=0) {
-              tfreq=SiteFCLR(stfrq,stfrq+frqrng);
-          }
+          tfreq=SiteFCLR(stfrq,stfrq+frqrng);
+          if (fixfrq) tfreq = stfrq;
+
           t0.tv_sec  = t1.tv_sec;
           t0.tv_usec = t1.tv_usec;
       }
@@ -501,7 +496,7 @@ void usage(void)
     printf("-nowait     : Do not wait for minute scan boundary\n");
     printf("-clrscan    : Force clear frequency search at start of scan\n");
     printf("-clrskip int: Minimum number of seconds to skip between clear frequency search\n");
-    printf("-fixfrq int : transmit on fixed frequency (kHz)\n");
+    printf("-fixfrq     : set to transmit on fixed frequency\n");
     printf("-frqrng int : set the clear frequency search window (kHz)\n");
     printf("     -c int : channel number for multi-channel radars.\n");
     printf("   -ros char: change the roshost IP address\n");
