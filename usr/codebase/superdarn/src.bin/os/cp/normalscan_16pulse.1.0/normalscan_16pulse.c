@@ -83,6 +83,8 @@ int main(int argc,char *argv[])
 
   unsigned char fast=0;
   unsigned char discretion=0;
+  int cpid=0;
+  int setintt=0;  /* flag to override auto-calc of integration time */
 
   /* Variables for controlling clear frequency search */
   struct timeval t0,t1;
@@ -103,6 +105,12 @@ int main(int argc,char *argv[])
   unsigned char hlp=0;
   unsigned char option=0;
   unsigned char version=0;
+
+  /* Flag and variables for beam synchronizing */
+  int bm_sync = 0;
+  int bmst    = 1;
+  int bmsc    = 6;
+  int bmus    = 0;
 
   struct sequence *seq;
 
@@ -142,8 +150,20 @@ int main(int argc,char *argv[])
   OptionAdd(&opt, "sb",     'i', &sbm);
   OptionAdd(&opt, "eb",     'i', &ebm);
   OptionAdd(&opt, "baud",   'i', &nbaud);
-  OptionAdd(&opt, "fixfrq", 'x', &fixfrq);     /* fix the transmit frequency */
-  OptionAdd(&opt, "frqrng", 'i', &frqrng);     /* fix the FCLR window [kHz] */
+  OptionAdd(&opt, "fixfrq", 'x', &fixfrq);     /* fix the transmit frequency  */
+  OptionAdd(&opt, "frqrng", 'i', &frqrng);     /* fix the FCLR window [kHz]   */
+  OptionAdd(&opt, "cpid",   'i', &cpid);       /* allow user to specify CPID, *
+                                                  e.g., RX-only               */
+  OptionAdd(&opt, "rxonly", 'x', &rxonly);     /* RX-only mode                */
+  OptionAdd(&opt, "bm_sync",'x', &bm_sync);    /* flag to enable beam sync    */
+  OptionAdd(&opt, "bmst",   'i', &bmst);       /* beam sync start time, sec   */
+  OptionAdd(&opt, "bmsc",   'i', &bmsc);       /* beam sync period, sec       */
+  OptionAdd(&opt, "bmus",   'i', &bmus);       /* beam sync period, microsec  */
+  OptionAdd(&opt, "intsc",  'i', &intsc);
+  OptionAdd(&opt, "intus",  'i', &intus);
+  OptionAdd(&opt, "setintt",'x', &setintt);
+  OptionAdd(&opt, "scnsc",  'i', &scnsc);      /* set the scan time */
+  OptionAdd(&opt, "scnus",  'i', &scnus);
   OptionAdd(&opt, "c",      'i', &cnum);
   OptionAdd(&opt, "ros",    't', &roshost);    /* Set the roshost IP address */
   OptionAdd(&opt, "debug",  'x', &debug);
@@ -244,19 +264,32 @@ int main(int argc,char *argv[])
     scnus = 0;
   }
 
+  if (bm_sync) {
+    sync_scan = 1;
+    scan_times = malloc(nBeams_per_scan*sizeof(int));
+  }
+
   for (iBeam=0; iBeam < nBeams_per_scan; iBeam++) {
     scan_beam_number_list[iBeam] = current_beam;
     current_beam += backward ? -1:1;
+    if (bm_sync) scan_times[iBeam] = iBeam * (bmsc*1000 + bmus/1000) + bmst*1000; /* in ms */
   }
 
-  /* Automatically calculate the integration times */
-  /* Note that I have added a buffer here to account for things at the end
-     of the scan. Traditionally this has been set to 3s, but I cannot find
-     any justification of the need for it. -SGS */
-  total_scan_usecs = scnsc*1e6 + scnus - (bufsc*1e6 + bufus);
-  total_integration_usecs = total_scan_usecs/nBeams_per_scan;
-  intsc = total_integration_usecs/1e6;
-  intus = total_integration_usecs - (intsc*1e6);
+  if ((nowait==0) && (setintt==0)) {
+    /* Automatically calculate the integration times */
+    /* Note that I have added a buffer here to account for things at the end
+       of the scan. Traditionally this has been set to 3s, but I cannot find
+       any justification of the need for it. -SGS */
+    /* A note here: the addition of commandline arguments for intsc and inus
+         have superceded the need for the ill-defined bufsc and bufus. In the
+         new paradigm one sets intsc & intus to say 6.0 s and then bmsc & bmus
+         to say 5.75 s for 6 second integrations giving some time at the end of
+         each integration period. */
+    total_scan_usecs = scnsc*1e6 + scnus - (bufsc*1e6 + bufus);
+    total_integration_usecs = total_scan_usecs/nBeams_per_scan;
+    intsc = total_integration_usecs/1e6;
+    intus = total_integration_usecs - (intsc*1e6);
+  }
 
   txpl = (nbaud*rsep*20)/3;
 
@@ -306,6 +339,9 @@ int main(int argc,char *argv[])
   elapsed_secs=0;
   gettimeofday(&t1,NULL);
   gettimeofday(&t0,NULL);
+
+  if (cpid) cp = cpid;  /* user is setting the CPID;
+                           discretionary flips sign below */
 
   if (discretion) cp = -cp;
 
@@ -510,6 +546,14 @@ void usage(void)
     printf("-clrscan    : Force clear frequency search at start of scan\n");
     printf("-clrskip int: Minimum number of seconds to skip between clear frequency search\n");
     printf("-frqrng int : set the clear frequency search window (kHz)\n");
+    printf("-rxonly     : bistatic RX only mode.\n");
+    printf("-bm_sync    : set to enable beam syncing.\n");
+    printf("  -bmst int : beam syncing start second [1].\n");
+    printf("  -bmsc int : beam syncing interval seconds.\n");
+    printf("  -bmus int : beam syncing interval microseconds.\n");
+    printf("-setintt    : set to enable integration period override.\n");
+    printf(" -intsc int : integration period seconds.\n");
+    printf(" -intus int : integration period microseconds.\n");
     printf("     -c int : channel number for multi-channel radars.\n");
     printf("   -ros char: change the roshost IP address\n");
     printf(" --help     : print this message and quit.\n");
