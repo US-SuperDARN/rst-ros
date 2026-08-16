@@ -50,7 +50,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"soundingscan 2026/08/15"};
+char progid[80]={"soundingscan 2026/08/16"};
 char progname[256];
 
 int arg=0;
@@ -93,6 +93,10 @@ int main(int argc,char *argv[]) {
   int n;
   int status=0;
 
+  int camp = 0;    /* flag to use a single camping beam */
+  int obm = 7;     /* camping beam */
+  int nbm = 16;    /* default number of "beams" for camping mode */
+
   int total_scan_usecs=0;
   int total_integration_usecs=0;
 
@@ -116,7 +120,12 @@ int main(int argc,char *argv[]) {
   */
 
   /* Iceland test frequencies */
-  int sndfreqs[] = {10200, 10400, 10600, 10800, 11000};
+  /* int sndfreqs[] = {10200, 10400, 10600, 10800, 11000};
+  int nfreqs  = 5;
+  */
+
+  /* USRP bistatic test frequencies */
+  int sndfreqs[] = {11000, 11700, 12700, 13800, 15200};
   int nfreqs  = 5;
 
   /*
@@ -164,6 +173,9 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt, "clrskip",'i', &clrskip);
   OptionAdd(&opt, "sb",     'i', &sbm);
   OptionAdd(&opt, "eb",     'i', &ebm);
+  OptionAdd(&opt, "camp",   'x', &camp);     /* use a single camping beam   */
+  OptionAdd(&opt, "ob",     'i', &obm);      /* one beam: i.e., THE beam    */
+  OptionAdd(&opt, "nb",     'i', &nbm);      /* number of camping beams per "scan"; default is 16 */
   OptionAdd(&opt, "fixfrq", 'x', &fixfrq);   /* fix the transmit frequency  */
   OptionAdd(&opt, "frqrng", 'i', &frqrng);   /* fix the FCLR window [kHz]   */
   OptionAdd(&opt, "cpid",   'i', &cpid);     /* allow user to specify CPID, *
@@ -265,9 +277,6 @@ int main(int argc,char *argv[]) {
                   " frqrng l xcnt l", &sbm,&ebm, &dfrq,&nfrq,
                   &frqrng,&xcnt);
 
-  nBeams_per_scan = abs(ebm-sbm)+1;
-  current_beam = sbm;
-
   if (fast) {
     cp   += 1;
     scnsc = 60;
@@ -277,6 +286,14 @@ int main(int argc,char *argv[]) {
     scnus = 0;
   }
 
+  if (camp) {
+    nBeams_per_scan = nbm;
+    current_beam = obm;
+  } else {
+    nBeams_per_scan = abs(ebm-sbm)+1;
+    current_beam = sbm;
+  }
+
   if (bm_sync) {
     sync_scan = 1;
     scan_times = malloc(nBeams_per_scan*sizeof(int));
@@ -284,7 +301,7 @@ int main(int argc,char *argv[]) {
 
   for (iBeam=0; iBeam < nBeams_per_scan; iBeam++) {
     scan_beam_number_list[iBeam] = current_beam;
-    current_beam += backward ? -1:1;
+    if (!camp) current_beam += backward ? -1:1;
     if (bm_sync) scan_times[iBeam] = iBeam * (bmsc*1000 + bmus/1000) + bmst*1000; /* in ms */
   }
 
@@ -550,6 +567,9 @@ void usage(void)
   printf("-nowait     : do not wait at end of scan boundary.\n");
   printf("-clrscan    : Force clear frequency search at start of scan\n");
   printf("-clrskip int: Minimum number of seconds to skip between clear frequency search\n");
+  printf("  -camp     : set to use a single camping beam.\n");
+  printf("    -ob int : THE one beam [7]\n");
+  printf("    -nb int : number of camping beams per scan [16]\n");
   printf("-rxonly     : bistatic RX only mode.\n");
   printf("-bm_sync    : set to enable beam syncing.\n");
   printf("  -bmst int : beam syncing start second [1].\n");
