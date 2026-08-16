@@ -164,6 +164,7 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt, "fixfrq", 'x', &fixfrq);     /* fix the transmit frequency    */
   OptionAdd(&opt, "snd",    'x', &snd_flg);    /* write snd data file           */
   OptionAdd(&opt, "sfrqrng",'i', &snd_frqrng); /* sounding FCLR window [kHz]    */
+  OptionAdd(&opt, "rxonly", 'x', &rxonly);     /* RX-only mode                  */
   OptionAdd(&opt, "bm_sync",'x', &bm_sync);    /* flag to enable beam sync      */
   OptionAdd(&opt, "bmst",   'i', &bmst);       /* beam sync start time, sec     */
   OptionAdd(&opt, "bmsc",   'i', &bmsc);       /* beam sync period, sec         */
@@ -610,6 +611,7 @@ void usage(void)
     printf("    -sb int : starting beam\n");
     printf("    -eb int : ending beam\n");
     printf("   -bms char: comma-separated list of beam numbers (overrides -sb and -eb)\n");
+    printf("-rxonly     : bistatic RX only mode.\n");
     printf("-bm_sync    : set to enable beam syncing.\n");
     printf("  -bmst int : beam syncing start second [1].\n");
     printf("  -bmsc int : beam syncing interval seconds.\n");
