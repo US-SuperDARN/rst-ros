@@ -393,7 +393,8 @@ int main(int argc,char *argv[]) {
 
     /* Logic to change frequency band on every scan, but also sync to minute */
     TimeReadClock(&yr,&mo,&dy,&hr,&mt,&sc,&us);
-    freqcnt = mt*60/scnsc % nfreqs;
+    /* Increase minute because now each scan starts before the minute boundary */
+    freqcnt = (mt+1)*60/scnsc % nfreqs;
 
     /* reset clearfreq parameters, in case daytime changed */
     for (iBeam=0; iBeam < nBeams_per_scan; iBeam++) {
