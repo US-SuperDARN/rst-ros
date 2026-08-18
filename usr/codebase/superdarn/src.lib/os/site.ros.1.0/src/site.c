@@ -436,7 +436,7 @@ int SiteRosStartScan(int32_t periods_per_scan, int32_t *scan_beam_list,
 
   TCPIPMsgSend(ros.sock, &periods_per_scan, sizeof(int32_t));    /* number of periods */
 
-  TCPIPMsgSend(ros.sock, &fixFreq,  sizeof(int32_t));    /* fixed frequency or -1 for clear_frequency search */
+  TCPIPMsgSend(ros.sock, &fixFreq, sizeof(int32_t));    /* 1 for fixed frequency or 0 for clear frequency search */
   TCPIPMsgSend(ros.sock, &clrfreq_fstart_list[0], periods_per_scan * sizeof(int32_t));    /* start frequency of clrfreq */
   TCPIPMsgSend(ros.sock, &clrfreq_bandwidth_list[0], periods_per_scan * sizeof(int32_t));    /* bandwidth of clrfreq in hertz */
   TCPIPMsgSend(ros.sock, &scan_beam_list[0], periods_per_scan * sizeof(int32_t));    /* start frequency of clrfreq */
@@ -455,6 +455,12 @@ int SiteRosStartScan(int32_t periods_per_scan, int32_t *scan_beam_list,
   TCPIPMsgSend(ros.sock, &rxonly, sizeof(int32_t));
 
   TCPIPMsgRecv(ros.sock, &rmsg, sizeof(struct ROSMsg));
+
+  if (rmsg.status < 0) {
+    ErrLog(errlog.sock,"SiteRosStartScan","Requested frequency band(s) unavailable. Sleeping 1 second and exiting");
+    sleep(1);
+    SiteRosExit(-1);
+  }
 
   if (debug) ErrLog(errlog.sock,"SiteRosStartScan","Leaving SiteRosStartScan");
 
