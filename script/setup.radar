@@ -3,8 +3,25 @@
 # Get three-letter radar code (default is "lab")
 RAD=${1:-lab}
 
+# Make sure site_settings file for radar exists
+if [ ! -f ${RSTPATH}/tables/superdarn/site/site.${RAD}/site_settings ]; then
+  echo "ERROR: site_settings file not found:"
+  echo "  ${RSTPATH}/tables/superdarn/site/site.${RAD}/site_settings"
+  exit
+fi
+
+# Print a helpful message
 echo "Creating symbolic link to site_settings for ${RAD}:"
 echo "  site_settings -> tables/superdarn/site/site.${RAD}/site_settings"
 
+# Get current directory
+pwd=`pwd`
+
+# Change to RST-ROS directory
+cd $RSTPATH
+
 # Create new symbolic link to radar-specific site_settings file
 ln -sfn tables/superdarn/site/site.$RAD/site_settings site_settings
+
+# Change back to original directory
+cd $pwd
