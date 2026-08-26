@@ -1,7 +1,1 @@
-export RADAR_NAME='lab'     # three-letter radar code
-export RADAR_CH1='a'        # single-letter channel code (a-d)
-export RADAR_CH2='b'        # single-letter channel code (a-d)
-
-export MAIN_RADAR='true'    # true if main radar computer, false if remote computer
-export TWO_CHANNEL='false'  # true if two channels active, false for single channel
-export TWO_RADAR='false'    # true if dual radar site, false if single radar
+tables/superdarn/site/site.lab/site_settings

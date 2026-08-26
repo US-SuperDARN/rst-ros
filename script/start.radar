@@ -43,9 +43,9 @@ if [ "$TWO_CHANNEL" = "true" ]; then
 fi
 
 echo "Waiting for rtserver to start"
-rtserver -rp 41104 -ep 41000 -tp 1024 &
+rtserver -rp 41104 -ep 41000 -tp ${RT_PORT1} &
 if [ "$TWO_CHANNEL" = "true" ]; then
-  rtserver -rp 42104 -ep 42000 -tp 1025 &
+  rtserver -rp 42104 -ep 42000 -tp ${RT_PORT2} &
 fi
 
 if [ "$MAIN_RADAR" = "true" ]; then
