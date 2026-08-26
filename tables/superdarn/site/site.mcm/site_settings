@@ -6,5 +6,5 @@ export MAIN_RADAR='true'    # true if main radar computer, false if remote compu
 export TWO_CHANNEL='false'  # true if two channels active, false for single channel
 export TWO_RADAR='false'    # true if dual radar site, false if single radar
 
-export RT_PORT1='1024'      # local real-time port for channel 1
-export RT_PORT2='1025'      # local real-time port for channel 2
+export RT_PORT1='1401'      # local real-time port for channel 1
+export RT_PORT2='1402'      # local real-time port for channel 2
