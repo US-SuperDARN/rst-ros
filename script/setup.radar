@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Get three-letter radar code (default is "lab")
+RAD=${1:-lab}
+
+echo "Creating symbolic link to site_settings for ${RAD}:"
+echo "  site_settings -> tables/superdarn/site/site.${RAD}/site_settings"
+
+# Create new symbolic link to radar-specific site_settings file
+ln -sfn tables/superdarn/site/site.$RAD/site_settings site_settings

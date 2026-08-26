@@ -174,6 +174,18 @@ is now set by default to the USR_BINPATH environment variable).
 Running the Radar
 -----------------
 
+A script is available for changing the symbolic link to point to the
+appropriate site_settings file for this radar computer:
+
+setup.radar [rad]
+
+where [rad] is the three-letter station ID code (default is "lab").
+For a dual radar site, make sure (1) the "TWO_RADAR" variable is set
+to "true" for the primary radar computer (i.e., running the usrp_server),
+(2) the "MAIN_RADAR" variable is set to "false" for the remote radar
+computer, and (3) the "RADAR_NAME" variable is set to a different value
+for each radar computer.
+
 Two scripts control the operation of the radar(s):
 
 start.radar   - starts the supporting tasks and scheduler process
@@ -182,15 +194,6 @@ stop.radar    - stops all radar tasks
 A script is also available for testing the operation of the radar:
 
 test.radar    - tests the operation of the radar
-
-Make sure the correct three-letter station ID code is assigned to the
-"RADAR_NAME" variable in the site_settings file.
-
-For a dual radar site, make sure (1) the "TWO_RADAR" variable is set
-to "true" for the primary radar computer (i.e., running the usrp_server),
-(2) the "MAIN_RADAR" variable is set to "false" for the remote radar
-computer, and (3) the "RADAR_NAME" variable is set to a different value
-for each radar computer.
 
 
 Monitoring the Data
