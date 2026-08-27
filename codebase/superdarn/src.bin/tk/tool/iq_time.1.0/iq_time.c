@@ -132,7 +132,7 @@ int main (int argc,char *argv[]) {
     nbaud = prm->txpl / prm->smsep;
 
     /* Identify wide TX beam data with negative beam number */
-    if (prm->bmazm == 0) {
+    if (prm->widetx == 1 || prm->bmazm == 0) {
       fprintf(stdout,"%s  %d -%02d  %05d  %02d  %02d",str,prm->scan,prm->bmnum,prm->tfreq,nbaud,iq->seqnum);
     } else {
       fprintf(stdout,"%s  %d  %02d  %05d  %02d  %02d",str,prm->scan,prm->bmnum,prm->tfreq,nbaud,iq->seqnum);
