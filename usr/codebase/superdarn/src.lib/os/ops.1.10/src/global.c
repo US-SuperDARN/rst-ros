@@ -88,6 +88,7 @@ int smsep=DEFAULT_SMSEP;
 int ercod=0;
 int agcstat=0;
 int lopwrstat=0;
+int chirp_bandwidth=0;
 int nbaud=1;
 float noise=0;
 int rxrise=DEFAULT_RXRISE;

@@ -71,6 +71,7 @@ extern int smsep;
 extern int ercod;
 extern int agcstat;
 extern int lopwrstat;
+extern int chirp_bandwidth;
 extern int nbaud;
 extern float noise;
 extern int rxrise;

@@ -511,7 +511,11 @@ int SiteRosStartIntt(int sec,int usec) {
   rprm.rbeam = bmnum;
   rprm.rfreq = 12000;
   rprm.trise = 5000;
-  rprm.baseband_samplerate = ((double)nbaud/(double)txpl)*1E6;
+  if( chirp_bandwidth > 0 ) {
+    rprm.baseband_samplerate = (double) chirp_bandwidth;
+  } else {
+    rprm.baseband_samplerate = ((double)nbaud/(double)txpl)*1E6;
+  }
   rprm.filter_bandwidth    = rprm.baseband_samplerate;
   rprm.match_filter        = dmatch;
   rprm.number_of_samples   = total_samples + nbaud + 10;
@@ -627,6 +631,7 @@ int SiteRosTimeSeq(int *ptab) {
   tsgprm.mpinc   = mpinc;
   tsgprm.mppul   = mppul;
   tsgprm.mlag    = 0;
+  tsgprm.chirp_bw = chirp_bandwidth;
   tsgprm.nbaud   = nbaud;
   tsgprm.code    = pcode;
   tsgprm.pat     = malloc(sizeof(int)*tsgprm.mppul);
@@ -674,6 +679,7 @@ int SiteRosTimeSeq(int *ptab) {
   for (i=0; i<mppul; i++)
     TCPIPMsgSend(ros.sock, &tsgprm.pat[i], sizeof(int));
 
+  TCPIPMsgSend(ros.sock, &chirp_bandwidth, sizeof(int));
   TCPIPMsgSend(ros.sock, &nbaud, sizeof(int));
   for (i=0; i<nbaud; i++)
     TCPIPMsgSend(ros.sock, &pcode[i], sizeof(int));
@@ -799,7 +805,11 @@ int SiteRosIntegrate(int (*lags)[2]) {
   rprm.rbeam = bmnum;
   rprm.rfreq = tfreq;
   rprm.trise = 5000;
+  if( chirp_bandwidth > 0 ) {
+    rprm.baseband_samplerate = (double) chirp_bandwidth;
+  } else {
   rprm.baseband_samplerate = ((double)nbaud/(double)txpl)*1E6;
+  }
   rprm.filter_bandwidth    = rprm.baseband_samplerate;
   rprm.match_filter        = dmatch;
   rprm.number_of_samples   = total_samples + nbaud + 10;
@@ -1015,6 +1025,7 @@ int SiteRosIntegrate(int (*lags)[2]) {
           (rdata.back)[n] = uQ32|uI32;
         }
       }
+      
       /*
         if (dprm.samples < total_samples) {
           fprintf(stderr,"Not enough samples from the ROS in SiteIntegrate\n");

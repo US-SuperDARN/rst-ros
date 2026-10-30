@@ -425,7 +425,7 @@ void OpsBuildPcode(int nbaud, int mppul, int *pcode) {
   int bcode2[2]={1,-1};
   int bcode3[3]={1,1,-1};
   int bcode4[4]={1,1,-1,1};
-  int bcode5[5]={1,1,1,-1,1};
+  int bcode5[5]={1,1,1,-1,1}; 
   int bcode7[7]={1,1,1,-1,-1,1,-1};
   int bcode11[11]={1,1,1,-1,-1,-1,1,-1,-1,1,-1};
   int bcode13[13]={1,1,1,1,1,-1,-1,1,1,-1,1,-1,1};
