@@ -43,7 +43,7 @@ int GeoLocCenter(struct RadarSite *site,int mag,float *lat,float *lon,
     if (mag) { 
         if (old_aacgm) s=AACGMConvert(glat,glon,300,&mlat,&mlon,&rho,0);
         else           s=AACGM_v2_Convert(glat,glon,300,&mlat,&mlon,&rho,GEOCENTRIC);
-        if (s == -1) printf(stderr, "Warning: AACGMConvert returned a -1\n");
+        if (s == -1) fprintf(stderr, "Warning: AACGMConvert returned a -1\n");
         *lat=mlat;
         *lon=mlon;
     } else {
