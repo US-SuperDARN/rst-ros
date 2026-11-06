@@ -1,5 +1,5 @@
-# Makefile for uafscan
-# =======================
+# Makefile for uafscan_chirp
+# ==========================
 # 
 #
 #

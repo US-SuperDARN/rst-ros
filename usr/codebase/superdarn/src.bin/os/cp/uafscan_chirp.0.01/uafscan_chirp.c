@@ -72,14 +72,14 @@ void usage(void);
 
 int rst_opterr(char *txt) {
   fprintf(stderr,"Option not recognized: %s\n",txt);
-  fprintf(stderr,"Please try: uafscan --help\n");
+  fprintf(stderr,"Please try: uafscan_chirp --help\n");
   return(-1);
 }
 
 
 int main(int argc,char *argv[]) {
-  char progid[80]={"uafscan 2026/08/15"};
-  char progname[256]="uafscan";
+  char progid[80]={"uafscan_chirp 2026/11/06"};
+  char progname[256]="uafscan_chirp";
   char modestr[32];
 
   char *roshost=NULL;
@@ -153,8 +153,8 @@ int main(int argc,char *argv[]) {
   nbaud  = 1;
 
   /* Chirp bandwidth in Hz */
-  chirp_bandwidth=0;
-  
+  chirp_bw=0;
+
   /* ========= PROCESS COMMAND LINE ARGUMENTS ============= */
 
   OptionAdd(&opt, "-help", 'x', &help);
@@ -221,7 +221,7 @@ int main(int argc,char *argv[]) {
 
   /* print help */
   if (help) {
-    printf("UAFSCAN: One control program to emulate the behaviour of all control programs.\n Supported modes: ... \n\n");
+    printf("UAFSCAN_CHIRP: One control program to emulate the behaviour of all control programs.\n Supported modes: ... \n\n");
     printf(" Usage: %s\n\n", progid);
     usage();
     return 0;
@@ -321,7 +321,7 @@ int main(int argc,char *argv[]) {
              nBeams_per_scan = 1;
          }
 
-         sprintf(logtxt,"uafscan configured for camping beam");
+         sprintf(logtxt,"uafscan_chirp configured for camping beam");
          ErrLog(errlog.sock,progname,logtxt);
          sprintf(logtxt," fast: %d onesec: %d cp: %d clrskip_secs: %d intsc: %d",fast,onesec,cp,clrskip,intsc);
          ErrLog(errlog.sock,progname,logtxt);
@@ -599,10 +599,10 @@ int main(int argc,char *argv[]) {
 
   if (frqrng <= 0) fixfrq = 1;
 
-  /* Calculate bandwidth in Hz based on rsep */
-  chirp_bandwidth = 3e5/(2*rsep);
+  /* Calculate chirp bandwidth in Hz based on rsep */
+  chirp_bw = 3e5/(2*rsep);
   smsep = 20*rsep/3;
-  
+
   /* Attempt to adjust mpinc to be a multiple of 10 and a muliple of txpl */
   if ((mpinc % txpl) || (mpinc % 10))  {
     ErrLog(errlog.sock,progname,"Error: mpinc not multiple of txpl... checking to see if it can be adjusted");
@@ -662,7 +662,7 @@ int main(int argc,char *argv[]) {
       tsgprm.mpinc   = mpinc;
       tsgprm.mlag    = 0;
       tsgprm.nbaud   = nbaud;
-      tsgprm.chirp_bw   = chirp_bandwidth;
+      tsgprm.chirp_bw = chirp_bw;
       tsgprm.stdelay = 18 + 2;
       tsgprm.gort    = 1;
       tsgprm.rtoxmin = 0;

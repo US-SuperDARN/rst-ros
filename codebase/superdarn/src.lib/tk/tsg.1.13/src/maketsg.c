@@ -182,17 +182,17 @@ struct TSGbuf *TSGMake(struct TSGprm *tsg,int *flg) {
   temp = tsg->frang*20;	/* in order to keep integer arithmetic */
   tsg->lagfr = temp/3;   /* working right we have to force 2 steps */
 
-  if (tsg->mppul !=0){ 
-    if(tsg->chirp_bw == 0) {
-      if (tsg->txpl !=0) tsg->smsep=tsg->txpl; 
+  if (tsg->mppul !=0) {
+    if (tsg->chirp_bw == 0) {
+      if (tsg->txpl !=0) tsg->smsep=tsg->txpl;
       else if (tsg->smsep==0) {
         tsg->smsep = (tsg->rsep*20)/3;
         tsg->txpl = tsg->smsep;
       } else tsg->txpl=tsg->smsep;
     } else {
-   	  tsg->smsep = (tsg->rsep*20)/3;
-    }   
-  }   
+      tsg->smsep = (tsg->rsep*20)/3;
+    }
+  }
 
   /* OK, if we are transmitting a phase encoded pulse, 
 	 the real sample separation has to be the pulse length/nbaud */

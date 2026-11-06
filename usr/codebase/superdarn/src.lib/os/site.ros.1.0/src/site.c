@@ -511,8 +511,8 @@ int SiteRosStartIntt(int sec,int usec) {
   rprm.rbeam = bmnum;
   rprm.rfreq = 12000;
   rprm.trise = 5000;
-  if( chirp_bandwidth > 0 ) {
-    rprm.baseband_samplerate = (double) chirp_bandwidth;
+  if (chirp_bw > 0) {
+    rprm.baseband_samplerate = (double) chirp_bw;
   } else {
     rprm.baseband_samplerate = ((double)nbaud/(double)txpl)*1E6;
   }
@@ -620,21 +620,21 @@ int SiteRosTimeSeq(int *ptab) {
   if (tsgprm.pat != NULL) free(tsgprm.pat);
   memset(&tsgprm,0,sizeof(struct TSGprm));
 
-  tsgprm.nrang   = nrang;
-  tsgprm.frang   = frang;
-  tsgprm.rtoxmin = 0;
-  tsgprm.stdelay = 18+2;
-  tsgprm.gort    = 1;
-  tsgprm.rsep    = rsep;
-  tsgprm.smsep   = smsep;
-  tsgprm.txpl    = txpl;
-  tsgprm.mpinc   = mpinc;
-  tsgprm.mppul   = mppul;
-  tsgprm.mlag    = 0;
-  tsgprm.chirp_bw = chirp_bandwidth;
-  tsgprm.nbaud   = nbaud;
-  tsgprm.code    = pcode;
-  tsgprm.pat     = malloc(sizeof(int)*tsgprm.mppul);
+  tsgprm.nrang    = nrang;
+  tsgprm.frang    = frang;
+  tsgprm.rtoxmin  = 0;
+  tsgprm.stdelay  = 18+2;
+  tsgprm.gort     = 1;
+  tsgprm.rsep     = rsep;
+  tsgprm.smsep    = smsep;
+  tsgprm.txpl     = txpl;
+  tsgprm.mpinc    = mpinc;
+  tsgprm.mppul    = mppul;
+  tsgprm.mlag     = 0;
+  tsgprm.chirp_bw = chirp_bw;
+  tsgprm.nbaud    = nbaud;
+  tsgprm.code     = pcode;
+  tsgprm.pat      = malloc(sizeof(int)*tsgprm.mppul);
   for (i=0; i<tsgprm.mppul; i++) tsgprm.pat[i] = ptab[i];
 
   tsgbuf = TSGMake(&tsgprm,&flag);
@@ -679,7 +679,7 @@ int SiteRosTimeSeq(int *ptab) {
   for (i=0; i<mppul; i++)
     TCPIPMsgSend(ros.sock, &tsgprm.pat[i], sizeof(int));
 
-  TCPIPMsgSend(ros.sock, &chirp_bandwidth, sizeof(int));
+  TCPIPMsgSend(ros.sock, &chirp_bw, sizeof(int));
   TCPIPMsgSend(ros.sock, &nbaud, sizeof(int));
   for (i=0; i<nbaud; i++)
     TCPIPMsgSend(ros.sock, &pcode[i], sizeof(int));
@@ -805,10 +805,10 @@ int SiteRosIntegrate(int (*lags)[2]) {
   rprm.rbeam = bmnum;
   rprm.rfreq = tfreq;
   rprm.trise = 5000;
-  if( chirp_bandwidth > 0 ) {
-    rprm.baseband_samplerate = (double) chirp_bandwidth;
+  if (chirp_bw > 0) {
+    rprm.baseband_samplerate = (double) chirp_bw;
   } else {
-  rprm.baseband_samplerate = ((double)nbaud/(double)txpl)*1E6;
+    rprm.baseband_samplerate = ((double)nbaud/(double)txpl)*1E6;
   }
   rprm.filter_bandwidth    = rprm.baseband_samplerate;
   rprm.match_filter        = dmatch;
@@ -1025,7 +1025,6 @@ int SiteRosIntegrate(int (*lags)[2]) {
           (rdata.back)[n] = uQ32|uI32;
         }
       }
-      
       /*
         if (dprm.samples < total_samples) {
           fprintf(stderr,"Not enough samples from the ROS in SiteIntegrate\n");

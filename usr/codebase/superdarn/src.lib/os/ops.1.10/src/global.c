@@ -88,7 +88,6 @@ int smsep=DEFAULT_SMSEP;
 int ercod=0;
 int agcstat=0;
 int lopwrstat=0;
-int chirp_bandwidth=0;
 int nbaud=1;
 float noise=0;
 int rxrise=DEFAULT_RXRISE;
@@ -148,6 +147,7 @@ int frqrng=300;
 int rfrate=5;
 int widetx=0;
 int rxonly=0;
+int chirp_bw=0;
 
 
 /* raw I&Q sample buffer */

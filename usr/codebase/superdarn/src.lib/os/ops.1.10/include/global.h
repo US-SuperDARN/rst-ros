@@ -71,7 +71,6 @@ extern int smsep;
 extern int ercod;
 extern int agcstat;
 extern int lopwrstat;
-extern int chirp_bandwidth;
 extern int nbaud;
 extern float noise;
 extern int rxrise;
@@ -155,6 +154,7 @@ extern int frqrng;
 extern int rfrate;
 extern int widetx;
 extern int rxonly;
+extern int chirp_bw;
 
 /* lists for parameters across a scan, need to send to usrp_server for swings to work.. */
 extern int32_t scan_clrfreq_bandwidth_list[MAX_INTEGRATIONS_PER_SCAN];
