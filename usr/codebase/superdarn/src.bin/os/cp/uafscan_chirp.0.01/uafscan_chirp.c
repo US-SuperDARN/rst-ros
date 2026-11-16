@@ -148,7 +148,7 @@ int main(int argc,char *argv[]) {
   mppul  = seq->mppul;
   mplgs  = seq->mplgs;
   mpinc  = seq->mpinc;
-  rsep   = 45;
+  rsep   = 15;
   txpl   = 500;
   nbaud  = 1;
 

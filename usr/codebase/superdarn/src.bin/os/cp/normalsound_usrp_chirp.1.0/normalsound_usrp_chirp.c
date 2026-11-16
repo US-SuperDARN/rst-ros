@@ -1,0 +1,633 @@
+/* normalsound_usrp.c
+   ==================
+   Author: E.G.Thomas
+
+*/
+
+/*
+ license stuff should go here...
+*/
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <string.h>
+#include <sys/time.h>
+#include <unistd.h>
+#include <zlib.h>
+#include "rtypes.h"
+#include "option.h"
+#include "rtime.h"
+#include "dmap.h"
+#include "limit.h"
+#include "radar.h"
+#include "rprm.h"
+#include "iq.h"
+#include "rawdata.h"
+#include "fitblk.h"
+#include "fitdata.h"
+#include "fitacf.h"
+#include "snddata.h"
+#include "errlog.h"
+#include "freq.h"
+#include "tcpipmsg.h"
+#include "rmsg.h"
+#include "rmsgsnd.h"
+#include "radarshell.h"
+#include "build.h"
+#include "global.h"
+#include "reopen.h"
+#include "sequence.h"
+#include "setup.h"
+#include "snd.h"
+#include "sync.h"
+#include "site.h"
+#include "sitebuild.h"
+#include "siteglobal.h"
+#include "rosmsg.h"
+#include "tsg.h"
+
+
+char *ststr=NULL;
+char *dfststr="lab";
+char *libstr="ros";
+
+void *tmpbuf;
+size_t tmpsze;
+
+char progid[80]={"normalsound_usrp_chirp 2026/11/13 1.0"};
+char progname[256]={"normalsound_usrp_chirp"};
+
+int arg=0;
+struct OptionData opt;
+
+char *roshost=NULL;
+int tnum=4;
+
+void usage(void);
+
+int rst_opterr(char *txt) {
+  fprintf(stderr,"Option not recognized: %s\n",txt);
+  fprintf(stderr,"Please try: normalsound_usrp --help\n");
+  return(-1);
+}
+
+int main(int argc,char *argv[]) {
+
+  char logtxt[1024];
+
+  int nowait=0;
+
+  int scnsc=0;      /* total scan period in seconds */
+  int scnus=0;
+  int cnt=0;
+
+  unsigned char fast=0;
+  unsigned char discretion=0;
+  int setintt=0;  /* flag to override auto-calc of integration time */
+
+  /* Variables for controlling clear frequency search */
+  struct timeval t0,t1;
+  int elapsed_secs=0;
+  int clrskip=-1;
+  int startup=1;
+  int fixfrq=0;
+  int clrscan=0;
+
+  int i,n;
+  int status=0;
+
+  int nbm = 16;    /* default number of "beams" */
+  int total_scan_usecs=0;
+  int total_integration_usecs=0;
+
+  char *bmstr=NULL;
+  int tmp_bm=0;
+  int tmp_bms[64];
+
+  int bufsc=3;    /* a buffer at the end of scan; historically this has   */
+  int bufus=0;    /*   been set to 3.0s to account for what???            */
+  unsigned char hlp=0;
+  unsigned char option=0;
+  unsigned char version=0;
+
+  unsigned char snd_flg=0;
+  unsigned char longpulse=0;
+
+  /* Flag and variables for beam synchronizing */
+  int bm_sync = 0;
+  int bmst    = 1;
+  int bmsc    = 6;
+  int bmus    = 0;
+
+  /* ---------------- Variables for sounding --------------- */
+  int *snd_bms;
+  int snd_freq_cnt=0, snd_bm_cnt=0;
+  int snd_bms_tot=0;
+  int snd_frqrng=100;
+  /* ------------------------------------------------------- */
+
+  struct sequence *seq;
+
+  seq=OpsSequenceMake();
+  OpsBuild8pulse(seq);
+
+  cp     = 1108;        /* CPID */
+  intsc  = 7;           /* integration period; recomputed below ... */
+  intus  = 0;
+  mppul  = seq->mppul;  /* number of pulses */
+  mplgs  = seq->mplgs;  /* number of lags */
+  mpinc  = seq->mpinc;  /* multi-pulse increment [us] */
+  rsep   = 15;          /* same for the range separation */
+  txpl   = 500;         /* pulse length [us]; gets redefined below... */
+  nbaud  = 1;
+
+  /* ========= PROCESS COMMAND LINE ARGUMENTS ============= */
+
+  OptionAdd(&opt, "di",     'x', &discretion);
+  OptionAdd(&opt, "wide",   'x', &widetx);
+  OptionAdd(&opt, "rfrate", 'i', &rfrate);
+  OptionAdd(&opt, "frang",  'i', &frang);
+  OptionAdd(&opt, "rsep",   'i', &rsep);
+  OptionAdd(&opt, "nrang",  'i', &nrang);
+  OptionAdd(&opt, "xcf",    'x', &xcnt);
+  OptionAdd(&opt, "ep",     'i', &errlog.port);
+  OptionAdd(&opt, "sp",     'i', &shell.port);
+  OptionAdd(&opt, "bp",     'i', &baseport);
+  OptionAdd(&opt, "stid",   't', &ststr);
+  OptionAdd(&opt, "fast",   'x', &fast);
+  OptionAdd(&opt, "nowait", 'x', &nowait);
+  OptionAdd(&opt, "nb",     'i', &nbm); /* number of beams per "scan"; default is 16 */
+  OptionAdd(&opt, "sb",     'i', &sbm);
+  OptionAdd(&opt, "eb",     'i', &ebm);
+  OptionAdd(&opt, "bms",    't', &bmstr);      /* comma-separated list of beams */
+  OptionAdd(&opt, "fixfrq", 'x', &fixfrq);     /* fix the transmit frequency    */
+  OptionAdd(&opt, "snd",    'x', &snd_flg);    /* write snd data file           */
+  OptionAdd(&opt, "sfrqrng",'i', &snd_frqrng); /* sounding FCLR window [kHz]    */
+  OptionAdd(&opt, "rxonly", 'x', &rxonly);     /* RX-only mode                  */
+  OptionAdd(&opt, "bm_sync",'x', &bm_sync);    /* flag to enable beam sync      */
+  OptionAdd(&opt, "bmst",   'i', &bmst);       /* beam sync start time, sec     */
+  OptionAdd(&opt, "bmsc",   'i', &bmsc);       /* beam sync period, sec         */
+  OptionAdd(&opt, "bmus",   'i', &bmus);       /* beam sync period, microsec    */
+  OptionAdd(&opt, "intsc",  'i', &intsc);
+  OptionAdd(&opt, "intus",  'i', &intus);
+  OptionAdd(&opt, "setintt",'x', &setintt);
+  OptionAdd(&opt, "baud",   'i', &nbaud);
+  OptionAdd(&opt, "tau",    'i', &mpinc);
+  OptionAdd(&opt, "longpulse",'x',&longpulse);
+  OptionAdd(&opt, "c",      'i', &cnum);
+  OptionAdd(&opt, "ros",    't', &roshost);    /* Set the roshost IP address */
+  OptionAdd(&opt, "debug",  'x', &debug);
+  OptionAdd(&opt, "-help",  'x', &hlp);        /* just dump some parameters */
+  OptionAdd(&opt, "-option",'x', &option);
+  OptionAdd(&opt,"-version",'x', &version);
+
+  /* process the commandline; need this for setting errlog port */
+  arg=OptionProcess(1,argc,argv,&opt,rst_opterr);
+
+  if (arg==-1) {
+    exit(-1);
+  }
+
+  if (option==1) {
+    OptionDump(stdout,&opt);
+    exit(0);
+  }
+
+  if (version==1) {
+    OptionVersion(stdout);
+    exit(0);
+  }
+
+  backward = (sbm > ebm) ? 1 : 0;   /* allow for non-standard scan dir. */
+
+  if (hlp) {
+    usage();
+
+    return (-1);
+  }
+
+  if (ststr==NULL) ststr=dfststr;
+
+  channel = cnum;
+
+  OpsStart(ststr);
+
+  /* Load the sounding frequencies */
+  OpsLoadSndFreqs(ststr);
+
+  status=SiteBuild(libstr);
+  if (status==-1) {
+    fprintf(stderr,"Could not load site library.\n");
+    exit(1);
+  }
+
+  status = SiteStart(roshost,ststr);
+  if (status==-1) {
+    fprintf(stderr,"Error reading site configuration file.\n");
+    exit(1);
+  }
+
+  if (longpulse) {
+    OpsBuild16pulse(seq);
+    mppul = seq->mppul;
+    mplgs = seq->mplgs;
+    mpinc = seq->mpinc;
+    nrang = 300;
+    rsep  = 15;
+    txpl  = 100;
+  }
+
+  /* reprocess the commandline since some things are reset by SiteStart */
+  arg=OptionProcess(1,argc,argv,&opt,NULL);
+  backward = (sbm > ebm) ? 1 : 0;   /* this almost certainly got reset */
+
+  if (fast) sprintf(progname,"normalsound_usrp_chirp (fast)");
+  else sprintf(progname,"normalsound_usrp_chirp (slow)");
+
+  printf("Station ID: %s  %d\n",ststr,stid);
+  strncpy(combf,progid,80);
+
+  if ((errlog.sock=TCPIPMsgOpen(errlog.host,errlog.port))==-1) {
+    fprintf(stderr,"Error connecting to error log.\n");
+  }
+  if ((shell.sock=TCPIPMsgOpen(shell.host,shell.port))==-1) {
+    fprintf(stderr,"Error connecting to shell.\n");
+  }
+
+  for (n=0;n<tnum;n++) task[n].port+=baseport;
+
+  OpsSetupCommand(argc,argv);
+  OpsSetupShell();
+
+  RadarShellParse(&rstable,"sbm l ebm l dfrq l nfrq l"
+                  " frqrng l xcnt l", &sbm,&ebm, &dfrq,&nfrq,
+                  &frqrng,&xcnt);
+
+  nBeams_per_scan = nbm;
+
+  if (fast) {
+    cp    = 1109;
+    scnsc = 60;
+    scnus = 0;
+  } else {
+    scnsc = 120;
+    scnus = 0;
+  }
+
+  if (bm_sync) {
+    sync_scan = 1;
+    scan_times = malloc(nBeams_per_scan*sizeof(int));
+    for (iBeam=0; iBeam < nBeams_per_scan; iBeam++) {
+      scan_times[iBeam] = iBeam * (bmsc*1000 + bmus/1000) + bmst*1000; /* in ms */
+    }
+  }
+
+  /* Create sounding beam list */
+  if (bmstr != NULL) {
+    /* Parse comma-separated beam list */
+    char *tok;
+    tok = strtok(bmstr, ",");
+    while (tok != NULL) {
+      tmp_bm = atoi(tok);
+      if (tmp_bm >= 0 && tmp_bm < site->maxbeam) {
+        tmp_bms[snd_bms_tot] = tmp_bm;
+        snd_bms_tot += 1;
+      }
+      tok = strtok(NULL, ",");
+    }
+
+    snd_bms = malloc(snd_bms_tot*sizeof(int));
+    for (i=0; i< snd_bms_tot; i++) {
+      snd_bms[i] = tmp_bms[i];
+    }
+  } else {
+    /* Check for valid start and end beams */
+    if (sbm < 0 || sbm >= site->maxbeam) {
+      fprintf(stderr,"Error: must provide valid start beam (-sb %d)\n",sbm);
+      exit(-1);
+    } else if (ebm < 0 || ebm >= site->maxbeam) {
+      fprintf(stderr,"Error: must provide valid end beam (-eb %d)\n",ebm);
+      exit(-1);
+    }
+
+    /* Build even/odd beam list from start and end beams */
+    snd_bms_tot = abs(sbm-ebm)+1;
+    snd_bms = malloc(snd_bms_tot*sizeof(int));
+    iBeam = 0;
+
+    /* Find all even beams in range first */
+    current_beam = sbm;
+    for (i=0; i < snd_bms_tot; i++) {
+      if ((current_beam % 2) == 0) {
+        snd_bms[iBeam] = current_beam;
+        iBeam += 1;
+      }
+      current_beam += backward ? -1:1;
+    }
+
+    /* Next find all odd beams in range */
+    current_beam = sbm;
+    for (i=0; i < snd_bms_tot; i++) {
+      if ((current_beam % 2) == 1) {
+        snd_bms[iBeam] = current_beam;
+        iBeam += 1;
+      }
+      current_beam += backward ? -1:1;
+    }
+  }
+
+  if (snd_bms_tot == 0) {
+    fprintf(stderr,"Error: must provide at least one valid beam number.\n");
+    exit(-1);
+  }
+
+  /* Automatically calculate the integration times */
+  if ((nowait==0) && (setintt==0)) {
+    total_scan_usecs = scnsc*1e6 + scnus - (bufsc*1e6 + bufus);
+    total_integration_usecs = total_scan_usecs/nBeams_per_scan;
+    intsc = total_integration_usecs/1E6;
+    intus = total_integration_usecs - (intsc*1e6);
+  }
+
+  /* Configure phasecoded operation if nbaud > 1 */
+  pcode=(int *)malloc((size_t)sizeof(int)*seq->mppul*nbaud);
+  OpsBuildPcode(nbaud,seq->mppul,pcode);
+
+  txpl=500;
+
+  chirp_bw = 3e5/(2*rsep);
+  smsep = 20*rsep/3;
+
+  /* Attempt to adjust mpinc to be a multiple of 10 and a multiple of txpl */
+  if ((mpinc % txpl) || (mpinc % 10))  {
+    ErrLog(errlog.sock,progname,"Error: mpinc not multiple of txpl... checking to see if it can be adjusted");
+    sprintf(logtxt,"Initial: mpinc: %d  txpl: %d  nbaud: %d  rsep: %d", mpinc, txpl, nbaud, rsep);
+    ErrLog(errlog.sock,progname,logtxt);
+
+    if ((txpl % 10) == 0) {
+      ErrLog(errlog.sock,progname, "Attempting to adjust mpinc to be correct");
+      if (mpinc < txpl) mpinc = txpl;
+      int minus_remain = mpinc % txpl;
+      int plus_remain = txpl - (mpinc % txpl);
+      if (plus_remain > minus_remain) mpinc = mpinc - minus_remain;
+      else                            mpinc = mpinc + plus_remain;
+      if (mpinc == 0) mpinc = mpinc + plus_remain;
+    }
+  }
+
+  /* Check mpinc and if still invalid, exit with error */
+  if ((mpinc % txpl) || (mpinc % 10) || (mpinc==0))  {
+    sprintf(logtxt,"Error: mpinc: %d  txpl: %d  nbaud: %d  rsep: %d", mpinc, txpl, nbaud, rsep);
+    ErrLog(errlog.sock,progname,logtxt);
+    SiteExit(0);
+  }
+
+  OpsSetupIQBuf(intsc,intus,mppul,mpinc,nbaud);
+
+  status=SiteSetupRadar();
+  if (status !=0) {
+    ErrLog(errlog.sock,progname,"Error locating hardware.");
+    exit(1);
+  }
+
+  printf("Initial Setup Complete: Station ID: %s  %d\n",ststr,stid);
+
+  /* Initialize timing variables */
+  elapsed_secs=0;
+  gettimeofday(&t1,NULL);
+  gettimeofday(&t0,NULL);
+
+  if (discretion) cp = -cp;
+
+  if (snd_frqrng <= 0) fixfrq = 1;
+
+  OpsLogStart(errlog.sock,progname,argc,argv);
+  OpsSetupTask(tnum,task,errlog.sock,progname);
+
+  for (n=0;n<tnum;n++) {
+    RMsgSndReset(task[n].sock);
+    RMsgSndOpen(task[n].sock,strlen((char *)command),command);
+  }
+
+  printf("Preparing OpsFitACFStart Station ID: %s  %d\n",ststr,stid);
+  OpsFitACFStart();
+
+  printf("Preparing OpsSndStart Station ID: %s %d\n",ststr,stid);
+  OpsSndStart();
+
+  printf("Preparing SiteTimeSeq Station ID: %s  %d\n",ststr,stid);
+  tsgid=SiteTimeSeq(seq->ptab);
+
+  /* Synchronize start of first scan to minute boundary */
+  if (nowait==0) {
+    ErrLog(errlog.sock,progname,"Synchronizing to scan boundary.");
+    SiteEndScan(scnsc,scnus,100000);
+  }
+
+  printf("Entering Scan loop Station ID: %s  %d\n",ststr,stid);
+  do {
+
+    ErrLog(errlog.sock,progname,"Starting scan.");
+
+    for (iBeam=0; iBeam < nBeams_per_scan; iBeam++) {
+      scan_beam_number_list[iBeam] = snd_bms[snd_bm_cnt];
+      scan_clrfreq_fstart_list[iBeam] = snd_freqs[snd_freq_cnt];
+      scan_clrfreq_bandwidth_list[iBeam] = (fixfrq == 1 ? 0 : snd_frqrng);
+
+      snd_freq_cnt++;
+      if (snd_freq_cnt >= snd_freqs_tot) {
+        /* reset the freq counter and increment the beam counter */
+        snd_freq_cnt = 0;
+        snd_bm_cnt++;
+        if (snd_bm_cnt >= snd_bms_tot) {
+          snd_bm_cnt = 0;
+        }
+      }
+    }
+
+    /* set iBeam for scan loop */
+    iBeam = 0;
+
+    /* send scan data to usrp_sever */
+    if (SiteStartScan(nBeams_per_scan, scan_beam_number_list, scan_clrfreq_fstart_list,
+                      scan_clrfreq_bandwidth_list, fixfrq, sync_scan, scan_times,
+                      scnsc, scnus, intsc, intus, iBeam) !=0) {
+      ErrLog(errlog.sock,progname,"Received error from usrp_server in ROS:SiteStartScan. Probably channel frequency issue in SetActiveHandler.");
+      sleep(1);
+      continue;
+    }
+
+    if (clrscan) startup=1;
+    if (xcnt>0) {
+      cnt++;
+      if (cnt==xcnt) {
+        xcf=1;
+        cnt=0;
+      } else xcf=0;
+    } else xcf=0;
+
+    do {
+
+      bmnum = scan_beam_number_list[iBeam];
+
+      TimeReadClock(&yr,&mo,&dy,&hr,&mt,&sc,&us);
+
+      stfrq = scan_clrfreq_fstart_list[iBeam];
+
+      if ((bmnum == snd_bms[0]) && (stfrq == snd_freqs[0])) {
+        scan = 1;
+      } else {
+        scan = 0;
+      }
+
+      sprintf(logtxt,"Integrating beam:%d intt:%ds.%dus (%02d:%02d:%02d:%06d)",
+                     bmnum,intsc,intus,hr,mt,sc,us);
+      ErrLog(errlog.sock,progname,logtxt);
+
+      ErrLog(errlog.sock,progname,"Starting Integration.");
+      printf("Entering Site Start Intt Station ID: %s  %d\n",ststr,stid);
+      SiteStartIntt(intsc,intus);
+
+      /* clear frequency search business */
+      gettimeofday(&t1,NULL);
+      elapsed_secs=t1.tv_sec-t0.tv_sec;
+      if (elapsed_secs<0) elapsed_secs=0;
+      if ((elapsed_secs >= clrskip) || (startup==1)) {
+          startup = 0;
+          ErrLog(errlog.sock,progname,"Doing clear frequency search.");
+          sprintf(logtxt, "FRQ: %d %d", stfrq, snd_frqrng);
+          ErrLog(errlog.sock,progname, logtxt);
+
+          tfreq=SiteFCLR(stfrq,stfrq+snd_frqrng);
+          if (fixfrq) tfreq = stfrq;
+
+          t0.tv_sec  = t1.tv_sec;
+          t0.tv_usec = t1.tv_usec;
+      }
+      sprintf(logtxt,"Transmitting on: %d (Noise=%g)",tfreq,noise);
+      ErrLog(errlog.sock,progname,logtxt);
+
+      nave=SiteIntegrate(seq->lags);
+      if (nave < 0) {
+        sprintf(logtxt,"Integration error: %d",nave);
+        ErrLog(errlog.sock,progname,logtxt);
+        continue;
+      }
+      sprintf(logtxt,"Number of sequences: %d",nave);
+      ErrLog(errlog.sock,progname,logtxt);
+
+      OpsBuildPrm(prm,seq->ptab,seq->lags);
+      OpsBuildIQ(iq,&badtr);
+      OpsBuildRaw(raw);
+
+      FitACF(prm,raw,fblk,fit,site,tdiff,-999);
+      FitSetAlgorithm(fit,"fitacf2");
+
+      if (snd_flg) {
+        OpsBuildSnd(snd,prm,fit);
+        OpsWriteSnd(errlog.sock, progname, snd, ststr);
+      }
+
+      if (iBeam == 0) {
+        if (OpsReOpen(2,0,0) !=0) {
+          ErrLog(errlog.sock,progname,"Opening new files.");
+          for (n=0; n<tnum; n++) {
+            RMsgSndClose(task[n].sock);
+            RMsgSndOpen(task[n].sock,strlen((char *)command),command);
+          }
+        }
+      }
+
+      msg.num=0;
+      msg.tsize=0;
+
+      tmpbuf=RadarParmFlatten(prm,&tmpsze);
+      RMsgSndAdd(&msg,tmpsze,tmpbuf, PRM_TYPE,0);
+
+      tmpbuf=IQFlatten(iq,prm->nave,&tmpsze);
+      RMsgSndAdd(&msg,tmpsze,tmpbuf,IQ_TYPE,0);
+
+      RMsgSndAdd(&msg,sizeof(unsigned int)*2*iq->tbadtr,
+                 (unsigned char *) badtr,BADTR_TYPE,0);
+
+      RMsgSndAdd(&msg,strlen(sharedmemory)+1,(unsigned char *)sharedmemory,
+                 IQS_TYPE,0);
+
+      tmpbuf=RawFlatten(raw,prm->nrang,prm->mplgs,&tmpsze);
+      RMsgSndAdd(&msg,tmpsze,tmpbuf,RAW_TYPE,0);
+
+      tmpbuf=FitFlatten(fit,prm->nrang,&tmpsze);
+      RMsgSndAdd(&msg,tmpsze,tmpbuf,FIT_TYPE,0);
+
+      for (n=0;n<tnum;n++) RMsgSndSend(task[n].sock,&msg);
+
+      for (n=0; n<msg.num; n++) {
+        if ( (msg.data[n].type == PRM_TYPE) ||
+             (msg.data[n].type == IQ_TYPE)  ||
+             (msg.data[n].type == RAW_TYPE) ||
+             (msg.data[n].type == FIT_TYPE) )  free(msg.ptr[n]);
+      }
+
+      RadarShell(shell.sock,&rstable);
+
+      iBeam++;
+      if (iBeam >= nBeams_per_scan) break;
+
+    } while (1);
+
+    ErrLog(errlog.sock,progname,"Waiting for scan boundary.");
+    if (nowait==0) SiteEndScan(scnsc,scnus,100000);
+
+  } while (1);
+
+  for (n=0; n<tnum; n++) RMsgSndClose(task[n].sock);
+
+  ErrLog(errlog.sock,progname,"Ending program.");
+
+  SiteExit(0);
+
+  return 0;
+}
+
+
+void usage(void)
+{
+    printf("\nnormalsound_usrp_chirp [command-line options]\n\n");
+    printf("command-line options:\n");
+    printf("  -stid char: radar string (required)\n");
+    printf("    -di     : indicates running during discretionary time\n");
+    printf("  -wide     : use a wide transmission beam\n");
+    printf("  -fast     : 1-min scan (2-min default)\n");
+    printf("-rfrate int : set the USRP RF sampling rate (MHz) [5]\n");
+    printf(" -frang int : delay to first range (km) [180]\n");
+    printf("  -rsep int : range separation (km) [45]\n");
+    printf(" -nrang int : number of range gates\n");
+    printf("   -xcf     : set for computing XCFs\n");
+    printf("    -ep int : error log port\n");
+    printf("    -sp int : shell port\n");
+    printf("    -bp int : base port\n");
+    printf("-fixfrq     : set to transmit on fixed frequency\n");
+    printf("-sfrqrng int: set the sounding FCLR search window (kHz)\n");
+    printf("-nowait     : do not wait at end of scan boundary.\n");
+    printf("    -nb int : number of beams per scan [16]\n");
+    printf("    -sb int : starting beam\n");
+    printf("    -eb int : ending beam\n");
+    printf("   -bms char: comma-separated list of beam numbers (overrides -sb and -eb)\n");
+    printf("-rxonly     : bistatic RX only mode.\n");
+    printf("-bm_sync    : set to enable beam syncing.\n");
+    printf("  -bmst int : beam syncing start second [1].\n");
+    printf("  -bmsc int : beam syncing interval seconds.\n");
+    printf("  -bmus int : beam syncing interval microseconds.\n");
+    printf("-setintt    : set to enable integration period override.\n");
+    printf(" -intsc int : integration period seconds.\n");
+    printf(" -intus int : integration period microseconds.\n");
+    printf("  -baud int : baud to use for Barker phase coded sequence (1,2,3,4,5,7,11,13) [1]\n");
+    printf("   -tau int : lag spacing in usecs [1500]\n");
+    printf("-longpulse  : set to use the extended 16-pulse sequence.\n");
+    printf("     -c int : channel number for multi-channel radars.\n");
+    printf("   -ros char: change the roshost IP address\n");
+    printf(" --help     : print this message and quit.\n");
+    printf("\n");
+}
+
