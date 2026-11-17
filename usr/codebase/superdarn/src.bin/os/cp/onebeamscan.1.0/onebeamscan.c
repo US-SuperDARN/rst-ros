@@ -82,6 +82,7 @@ int main(int argc,char *argv[]) {
   char logtxt[1024];
 
   int nowait=0;
+  int chirp=0;
 
   int scnsc=120;      /* total scan period in seconds */
   int scnus=0;
@@ -135,6 +136,9 @@ int main(int argc,char *argv[]) {
   txpl   = 300;         /* pulse length [us]; gets redefined below... */
   nbaud  = 1;
 
+  /* Chirp bandwidth in Hz */
+  chirp_bw=0;
+
   /* ========= PROCESS COMMAND LINE ARGUMENTS ============= */
 
   OptionAdd(&opt, "di",     'x', &discretion);
@@ -153,6 +157,7 @@ int main(int argc,char *argv[]) {
   OptionAdd(&opt, "bp",     'i', &baseport);
   OptionAdd(&opt, "stid",   't', &ststr);
   OptionAdd(&opt, "fast",   'x', &fast);
+  OptionAdd(&opt, "chirp",   'x', &chirp);
   OptionAdd(&opt, "nowait", 'x', &nowait);
   OptionAdd(&opt, "clrscan",'x', &clrscan);
   OptionAdd(&opt, "clrskip",'i', &clrskip);
@@ -291,7 +296,13 @@ int main(int argc,char *argv[]) {
   pcode=(int *)malloc((size_t)sizeof(int)*seq->mppul*nbaud);
   OpsBuildPcode(nbaud,seq->mppul,pcode);
 
-  txpl=(nbaud*rsep*20)/3;
+  if (chirp==0){
+    txpl=(nbaud*rsep*20)/3;
+  } else {
+    txpl = 500; /* for chirp, use 500us pulse length */
+    smsep = 20*rsep/3;
+    chirp_bw = 3e5/(2*rsep);
+  }
 
   /* Attempt to adjust mpinc to be a multiple of 10 and a multiple of txpl */
   if ((mpinc % txpl) || (mpinc % 10))  {
@@ -317,7 +328,12 @@ int main(int argc,char *argv[]) {
     SiteExit(0);
   }
 
-  OpsSetupIQBuf(intsc,intus,mppul,mpinc,nbaud);
+  if (chirp==0) {
+    OpsSetupIQBuf(intsc,intus,mppul,mpinc,nbaud);
+  } else {
+    int rs_to_pl_ratio = (int) txpl/smsep;
+    OpsSetupIQBuf(intsc,intus,mppul,mpinc,rs_to_pl_ratio);
+  }
 
   status = SiteSetupRadar();
   if (status != 0) {
