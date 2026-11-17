@@ -1,6 +1,6 @@
-/* normalsound_usrp.c
-   ==================
-   Author: E.G.Thomas
+/* normalsound_usrp_chirp.c
+   ========================
+   Author: E.G.Thomas & W.A.Bristow
 
 */
 
@@ -55,7 +55,7 @@ char *libstr="ros";
 void *tmpbuf;
 size_t tmpsze;
 
-char progid[80]={"normalsound_usrp_chirp 2026/11/13 1.0"};
+char progid[80]={"normalsound_usrp_chirp 2026/11/16"};
 char progname[256]={"normalsound_usrp_chirp"};
 
 int arg=0;
@@ -68,7 +68,7 @@ void usage(void);
 
 int rst_opterr(char *txt) {
   fprintf(stderr,"Option not recognized: %s\n",txt);
-  fprintf(stderr,"Please try: normalsound_usrp --help\n");
+  fprintf(stderr,"Please try: normalsound_usrp_chirp --help\n");
   return(-1);
 }
 
@@ -383,7 +383,8 @@ int main(int argc,char *argv[]) {
     SiteExit(0);
   }
 
-  OpsSetupIQBuf(intsc,intus,mppul,mpinc,nbaud);
+  int rs_to_pl_ratio = (int) txpl/smsep;
+  OpsSetupIQBuf(intsc,intus,mppul,mpinc,rs_to_pl_ratio);
 
   status=SiteSetupRadar();
   if (status !=0) {
